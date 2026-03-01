@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import MainLayout from '../../components/layout/MainLayout'
 import { motion } from 'framer-motion'
 import { Package, TrendingUp, AlertCircle, ChevronRight } from 'lucide-react'
-import { getCategories } from '../../lib/api'
+import { getCategoriesSummary } from '../../lib/api'
 import { useRouter } from 'next/navigation'
 
 interface Category {
@@ -26,8 +26,8 @@ export default function CategoriesPage() {
 
   const fetchCategories = async () => {
     try {
-      const response = await getCategories()
-      setCategories(response?.data || [])
+      const response = await getCategoriesSummary()
+      setCategories(Array.isArray(response) ? response : (response?.data || []))
     } catch (error) {
       console.error('Error fetching categories:', error)
       setCategories([])

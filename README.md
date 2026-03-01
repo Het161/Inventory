@@ -1,4 +1,4 @@
-# 🏢 WEB YOUR VYAVSAY - Inventory Management System
+# 🏢 OM MARKETING SOLUTIONS- Inventory Management System
 
 <div align="center">
 
@@ -20,12 +20,11 @@ Enterprise-grade inventory management platform with real-time tracking, AI autom
 ---
 
 ## 📖 About The Project
-
-WEB YOUR VYAVSAY is a comprehensive full-stack inventory management system designed to help businesses efficiently track and manage their products, warehouses, outlets, customers, and staff. The platform provides real-time analytics, AI-powered automation, and an intuitive interface to streamline inventory operations.
+OM MARKETING SOLUTIONSis a comprehensive full-stack inventory management system designed to help businesses efficiently track and manage their products, warehouses, outlets, customers, and staff. The platform provides real-time analytics, AI-powered automation, and an intuitive interface to streamline inventory operations.
 
 Built with cutting-edge technologies, this system revolutionizes how businesses manage their supply chain by combining powerful backend APIs with an intuitive, responsive frontend to provide complete visibility across your entire operation.
 
-### Why WEB YOUR VYAVSAY?
+### Why OM MARKETING SOLUTIONS?
 
 - ✅ **Real-time Inventory Tracking** - Monitor stock levels across multiple locations instantly
 - ✅ **AI-Powered Insights** - Intelligent agents for anomaly detection and predictive analytics

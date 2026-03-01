@@ -9,7 +9,7 @@ export default function AccountSettingsPage() {
   const [formData, setFormData] = useState({
     fullName: 'Admin User',
     email: 'admin@shanenterprise.com',
-    phone: '+880 1234-567890',
+    phone: '+91 98252 47312',
     role: 'Administrator',
     department: 'Management',
     address: 'Dhaka, Bangladesh',

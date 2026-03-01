@@ -1,10 +1,38 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import MainLayout from '../../components/layout/MainLayout'
 import { motion } from 'framer-motion'
-import { User, Mail, Phone, MapPin, Calendar, Award } from 'lucide-react'
+import { User, Mail, Phone, MapPin, Calendar, Package, ShoppingCart, TrendingUp } from 'lucide-react'
+import { getProducts, getSales, getCustomers } from '../../lib/api'
+import { useCurrency } from '../../contexts/CurrencyContext'
 
 export default function ProfilePage() {
+  const { formatLargeNumber } = useCurrency()
+  const [stats, setStats] = useState({ orders: 0, products: 0, revenue: 0 })
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        const [products, sales] = await Promise.all([
+          getProducts().catch(() => []),
+          getSales().catch(() => []),
+        ])
+        const prodArr = Array.isArray(products) ? products : []
+        const salesArr = Array.isArray(sales) ? sales : []
+        const revenue = prodArr.reduce((s: number, p: any) => s + (p.stock * p.price), 0)
+        setStats({
+          orders: salesArr.length,
+          products: prodArr.length,
+          revenue,
+        })
+      } catch {
+        // fallback
+      }
+    }
+    fetchStats()
+  }, [])
+
   return (
     <MainLayout title="My Profile" subtitle="View and manage your profile information">
       <div className="max-w-4xl mx-auto">
@@ -39,9 +67,9 @@ export default function ProfilePage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[
-                { icon: Mail, label: 'Email', value: 'admin@shanenterprise.com' },
-                { icon: Phone, label: 'Phone', value: '+880 1234-567890' },
-                { icon: MapPin, label: 'Location', value: 'Dhaka, Bangladesh' },
+                { icon: Mail, label: 'Email', value: 'admin@ommarketing.com' },
+                { icon: Phone, label: 'Phone', value: '+91 98765-43210' },
+                { icon: MapPin, label: 'Location', value: 'India' },
                 { icon: Calendar, label: 'Joined', value: 'January 2024' },
               ].map((item, idx) => (
                 <div key={idx} className="flex items-center gap-4 p-4 bg-gray-50 rounded-lg">
@@ -59,11 +87,12 @@ export default function ProfilePage() {
             {/* Stats */}
             <div className="grid grid-cols-3 gap-4 mt-8">
               {[
-                { label: 'Orders', value: '145' },
-                { label: 'Products', value: '1,234' },
-                { label: 'Revenue', value: '$45K' },
+                { icon: ShoppingCart, label: 'Orders', value: stats.orders.toLocaleString() },
+                { icon: Package, label: 'Products', value: stats.products.toLocaleString() },
+                { icon: TrendingUp, label: 'Stock Value', value: formatLargeNumber(stats.revenue) },
               ].map((stat, idx) => (
                 <div key={idx} className="text-center p-4 bg-gray-50 rounded-lg">
+                  <stat.icon className="w-6 h-6 text-indigo-600 mx-auto mb-2" />
                   <p className="text-2xl font-bold text-gray-900">{stat.value}</p>
                   <p className="text-sm text-gray-500">{stat.label}</p>
                 </div>

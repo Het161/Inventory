@@ -3,9 +3,9 @@
 import { useState, useEffect } from 'react'
 import MainLayout from '../../components/layout/MainLayout'
 import { motion, AnimatePresence } from 'framer-motion'
-import { TrendingUp, TrendingDown, Plus, X, Save, Trash2 } from 'lucide-react'
+import { TrendingUp, TrendingDown, Plus, X, Save, Trash2, Package } from 'lucide-react'
 import { LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
-import { getProducts } from '../../lib/api'
+import { getProducts, getStockMovements, createStockMovement, deleteStockMovement, createProduct, getCategories } from '../../lib/api'
 
 interface Transaction {
   id: number
@@ -24,16 +24,14 @@ interface Product {
 }
 
 export default function StockManagementPage() {
-  const [transactions, setTransactions] = useState<Transaction[]>([
-    { id: 1, date: '2024-10-01', product: 'Laptop Pro', type: 'Stock In', quantity: 50, reference: 'PO-2024-001', user: 'John Doe' },
-    { id: 2, date: '2024-10-02', product: 'Wireless Mouse', type: 'Stock Out', quantity: 5, reference: 'SO-2024-015', user: 'Jane Smith' },
-    { id: 3, date: '2024-10-03', product: 'USB Cable', type: 'Stock In', quantity: 20, reference: 'PO-2024-002', user: 'John Doe' },
-    { id: 4, date: '2024-10-04', product: 'Monitor 24"', type: 'Stock Out', quantity: 2, reference: 'ADJ-2024-001', user: 'Admin' },
-  ])
+  const [transactions, setTransactions] = useState<Transaction[]>([])
 
   const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [showAddModal, setShowAddModal] = useState(false)
+  const [showNewProductForm, setShowNewProductForm] = useState(false)
+  const [creatingProduct, setCreatingProduct] = useState(false)
   const [newTransaction, setNewTransaction] = useState({
     product: '',
     type: 'Stock In' as 'Stock In' | 'Stock Out',
@@ -41,15 +39,27 @@ export default function StockManagementPage() {
     reference: '',
     user: 'Admin',
   })
+  const [newProduct, setNewProduct] = useState({
+    name: '',
+    sku: '',
+    category: '',
+    stock: 0,
+    min_stock: 0,
+    price: 0,
+    status: 'In Stock',
+    description: '',
+  })
 
   useEffect(() => {
     fetchProducts()
+    fetchTransactions()
+    fetchCategories()
   }, [])
 
   const fetchProducts = async () => {
     try {
       const response = await getProducts()
-      setProducts(response?.data || [])
+      setProducts(Array.isArray(response) ? response : (response?.data || []))
     } catch (error) {
       console.error('Error fetching products:', error)
       setProducts([])
@@ -58,46 +68,88 @@ export default function StockManagementPage() {
     }
   }
 
-  const handleAddTransaction = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    const transaction: Transaction = {
-      id: transactions.length + 1,
-      date: new Date().toISOString().split('T')[0],
-      product: newTransaction.product,
-      type: newTransaction.type,
-      quantity: newTransaction.quantity,
-      reference: newTransaction.reference,
-      user: newTransaction.user,
+  const fetchCategories = async () => {
+    try {
+      const data = await getCategories()
+      const cats = Array.isArray(data) ? data.map((c: any) => c.name) : []
+      setCategories(cats)
+    } catch (error) {
+      console.error('Error fetching categories:', error)
     }
-
-    setTransactions([transaction, ...transactions])
-    setShowAddModal(false)
-    setNewTransaction({
-      product: '',
-      type: 'Stock In',
-      quantity: 0,
-      reference: '',
-      user: 'Admin',
-    })
-    alert('✅ Transaction added successfully!')
   }
 
-  const handleDeleteTransaction = (id: number) => {
+  const handleCreateProduct = async () => {
+    if (!newProduct.name || !newProduct.sku || !newProduct.category) return
+    setCreatingProduct(true)
+    try {
+      await createProduct(newProduct)
+      await fetchProducts()
+      setNewTransaction({ ...newTransaction, product: newProduct.name })
+      setShowNewProductForm(false)
+      setNewProduct({ name: '', sku: '', category: '', stock: 0, min_stock: 0, price: 0, status: 'In Stock', description: '' })
+    } catch (error) {
+      console.error('Error creating product:', error)
+      alert('Failed to create product. SKU might already exist.')
+    } finally {
+      setCreatingProduct(false)
+    }
+  }
+
+  const fetchTransactions = async () => {
+    try {
+      const data = await getStockMovements()
+      setTransactions(Array.isArray(data) ? data : [])
+    } catch (error) {
+      console.error('Error fetching transactions:', error)
+    }
+  }
+
+  const handleAddTransaction = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await createStockMovement({
+        date: new Date().toISOString().split('T')[0],
+        product: newTransaction.product,
+        type: newTransaction.type,
+        quantity: newTransaction.quantity,
+        reference: newTransaction.reference,
+        user: newTransaction.user,
+      })
+      setShowAddModal(false)
+      setNewTransaction({ product: '', type: 'Stock In', quantity: 0, reference: '', user: 'Admin' })
+      fetchTransactions()
+    } catch (error) {
+      console.error('Error adding transaction:', error)
+    }
+  }
+
+  const handleDeleteTransaction = async (id: number) => {
     if (!confirm('Are you sure you want to delete this transaction?')) return
-    setTransactions(transactions.filter(t => t.id !== id))
-    alert('✅ Transaction deleted successfully!')
+    try {
+      await deleteStockMovement(id)
+      fetchTransactions()
+    } catch (error) {
+      console.error('Error deleting transaction:', error)
+    }
   }
 
-  // Chart data - Stock Movement Over Time
-  const chartData = [
-    { name: 'Week 1', stockIn: 65, stockOut: 28 },
-    { name: 'Week 2', stockIn: 59, stockOut: 48 },
-    { name: 'Week 3', stockIn: 80, stockOut: 40 },
-    { name: 'Week 4', stockIn: 81, stockOut: 42 },
-    { name: 'Week 5', stockIn: 56, stockOut: 35 },
-    { name: 'Week 6', stockIn: 75, stockOut: 50 },
-  ]
+  // Chart data - derived from real transactions
+  const movementMap: Record<string, { stockIn: number; stockOut: number }> = {}
+  if (Array.isArray(transactions)) {
+    transactions.forEach((t: any) => {
+      const date = t.date || 'Unknown'
+      if (!movementMap[date]) movementMap[date] = { stockIn: 0, stockOut: 0 }
+      if (t.type === 'Stock In' || t.type === 'in') {
+        movementMap[date].stockIn += t.quantity || 0
+      } else {
+        movementMap[date].stockOut += t.quantity || 0
+      }
+    })
+  }
+  const chartData = Object.entries(movementMap)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .slice(-8)
+    .map(([name, data]) => ({ name, ...data }))
 
   // Product Stock Levels - FIXED with null check
   const stockLevels = (products && Array.isArray(products)) 
@@ -290,17 +342,162 @@ export default function StockManagementPage() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="md:col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">Product *</label>
-                      <select
-                        required
-                        value={newTransaction.product}
-                        onChange={(e) => setNewTransaction({...newTransaction, product: e.target.value})}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                      >
-                        <option value="">Select a product</option>
-                        {products && products.map(p => (
-                          <option key={p.id} value={p.name}>{p.name}</option>
-                        ))}
-                      </select>
+                      <div className="flex gap-2">
+                        <select
+                          required
+                          value={newTransaction.product}
+                          onChange={(e) => setNewTransaction({...newTransaction, product: e.target.value})}
+                          className="flex-1 px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                        >
+                          <option value="">Select a product</option>
+                          {products && products.map(p => (
+                            <option key={p.id} value={p.name}>{p.name}</option>
+                          ))}
+                        </select>
+                        <button
+                          type="button"
+                          onClick={() => setShowNewProductForm(!showNewProductForm)}
+                          className={`px-3 py-2.5 rounded-lg flex items-center justify-center transition-all duration-200 ${
+                            showNewProductForm
+                              ? 'bg-red-100 text-red-600 hover:bg-red-200'
+                              : 'bg-indigo-100 text-indigo-600 hover:bg-indigo-200'
+                          }`}
+                          title={showNewProductForm ? 'Cancel' : 'Add new product'}
+                        >
+                          {showNewProductForm ? <X className="w-5 h-5" /> : <Plus className="w-5 h-5" />}
+                        </button>
+                      </div>
+
+                      {/* Inline New Product Form */}
+                      <AnimatePresence>
+                        {showNewProductForm && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2 }}
+                            className="overflow-hidden"
+                          >
+                            <div className="mt-3 p-4 bg-indigo-50 border border-indigo-200 rounded-xl space-y-3">
+                              <div className="flex items-center gap-2 mb-1">
+                                <Package className="w-4 h-4 text-indigo-600" />
+                                <span className="text-sm font-bold text-indigo-700">Quick Add Product</span>
+                              </div>
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Product Name *</label>
+                                  <input
+                                    type="text"
+                                    value={newProduct.name}
+                                    onChange={(e) => setNewProduct({...newProduct, name: e.target.value})}
+                                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    placeholder="e.g., Wireless Headphones"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">SKU *</label>
+                                  <input
+                                    type="text"
+                                    value={newProduct.sku}
+                                    onChange={(e) => setNewProduct({...newProduct, sku: e.target.value})}
+                                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    placeholder="e.g., WH-001"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Category *</label>
+                                  <div className="relative">
+                                    <input
+                                      type="text"
+                                      list="category-suggestions"
+                                      value={newProduct.category}
+                                      onChange={(e) => setNewProduct({...newProduct, category: e.target.value})}
+                                      className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                      placeholder="Type or select category"
+                                    />
+                                    <datalist id="category-suggestions">
+                                      {categories.map((cat, i) => (
+                                        <option key={i} value={cat} />
+                                      ))}
+                                    </datalist>
+                                  </div>
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Price *</label>
+                                  <input
+                                    type="number"
+                                    step="0.01"
+                                    value={newProduct.price}
+                                    onChange={(e) => setNewProduct({...newProduct, price: parseFloat(e.target.value) || 0})}
+                                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    placeholder="0.00"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Initial Stock</label>
+                                  <input
+                                    type="number"
+                                    value={newProduct.stock}
+                                    onChange={(e) => setNewProduct({...newProduct, stock: parseInt(e.target.value) || 0})}
+                                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    placeholder="0"
+                                  />
+                                </div>
+                                <div>
+                                  <label className="block text-xs font-medium text-gray-600 mb-1">Min Stock Level</label>
+                                  <input
+                                    type="number"
+                                    value={newProduct.min_stock}
+                                    onChange={(e) => setNewProduct({...newProduct, min_stock: parseInt(e.target.value) || 0})}
+                                    className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                    placeholder="0"
+                                  />
+                                </div>
+                              </div>
+                              <div>
+                                <label className="block text-xs font-medium text-gray-600 mb-1">Description</label>
+                                <input
+                                  type="text"
+                                  value={newProduct.description}
+                                  onChange={(e) => setNewProduct({...newProduct, description: e.target.value})}
+                                  className="w-full px-3 py-2 text-sm border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+                                  placeholder="Optional description"
+                                />
+                              </div>
+                              <div className="flex justify-end gap-2 pt-1">
+                                <button
+                                  type="button"
+                                  onClick={() => setShowNewProductForm(false)}
+                                  className="px-3 py-1.5 text-sm border border-gray-300 rounded-lg text-gray-600 hover:bg-gray-100 transition-colors"
+                                >
+                                  Cancel
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={handleCreateProduct}
+                                  disabled={creatingProduct || !newProduct.name || !newProduct.sku || !newProduct.category}
+                                  className="px-4 py-1.5 text-sm bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+                                >
+                                  {creatingProduct ? (
+                                    <>
+                                      <svg className="animate-spin w-3.5 h-3.5" viewBox="0 0 24 24">
+                                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+                                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                                      </svg>
+                                      Creating...
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Plus className="w-3.5 h-3.5" />
+                                      Add Product
+                                    </>
+                                  )}
+                                </button>
+                              </div>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
                     </div>
 
                     <div>

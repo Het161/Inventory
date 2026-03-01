@@ -39,23 +39,23 @@ body {
   .text-balance {
     text-wrap: balance;
   }
-  
+
   .animation-delay-2000 {
     animation-delay: 2s;
   }
-  
+
   .animation-delay-4000 {
     animation-delay: 4s;
   }
-  
+
   .perspective-1000 {
     perspective: 1000px;
   }
-  
+
   .transform-3d {
     transform-style: preserve-3d;
   }
-  
+
   .backface-hidden {
     backface-visibility: hidden;
   }
@@ -129,9 +129,10 @@ body {
   box-shadow: 0 0 15px rgba(129, 140, 248, 0.7);
 }
 
-/* Smooth transitions */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
+/* Smooth transitions - opt-in only, not global */
+.smooth-transition {
+  transition-property:
+    background-color, border-color, color, fill, stroke, box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 200ms;
 }
@@ -148,7 +149,9 @@ body {
 }
 
 .dark button:not(.no-glow):hover {
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.6), 0 0 30px rgba(138, 147, 255, 0.4);
+  box-shadow:
+    0 0 20px rgba(99, 102, 241, 0.6),
+    0 0 30px rgba(138, 147, 255, 0.4);
   transform: translateY(-2px);
 }
 
@@ -165,18 +168,26 @@ body {
 }
 
 .dark .bg-white:hover {
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.2), 0 0 50px rgba(138, 147, 255, 0.1);
+  box-shadow:
+    0 0 30px rgba(99, 102, 241, 0.2),
+    0 0 50px rgba(138, 147, 255, 0.1);
   border-color: rgba(138, 147, 255, 0.3);
 }
 
 /* Glowing text in dark mode */
-.dark h1, .dark h2, .dark h3 {
+.dark h1,
+.dark h2,
+.dark h3 {
   text-shadow: 0 0 20px rgba(138, 147, 255, 0.3);
 }
 
 /* Input glow in dark mode */
-.dark input:focus, .dark textarea:focus, .dark select:focus {
-  box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.5), 0 0 20px rgba(99, 102, 241, 0.3);
+.dark input:focus,
+.dark textarea:focus,
+.dark select:focus {
+  box-shadow:
+    0 0 0 2px rgba(99, 102, 241, 0.5),
+    0 0 20px rgba(99, 102, 241, 0.3);
   border-color: #6366f1;
 }
 
@@ -246,11 +257,14 @@ body {
 
 /* Pulse glow animation for dark mode */
 @keyframes pulseGlow {
-  0%, 100% {
+  0%,
+  100% {
     box-shadow: 0 0 10px rgba(99, 102, 241, 0.3);
   }
   50% {
-    box-shadow: 0 0 25px rgba(99, 102, 241, 0.6), 0 0 40px rgba(138, 147, 255, 0.4);
+    box-shadow:
+      0 0 25px rgba(99, 102, 241, 0.6),
+      0 0 40px rgba(138, 147, 255, 0.4);
   }
 }
 
@@ -260,19 +274,23 @@ body {
 
 /* Card hover effects */
 .card-hover {
-  transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+  transition:
+    transform 0.2s ease-in-out,
+    box-shadow 0.2s ease-in-out;
 }
 
 .card-hover:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 
-              0 8px 10px -6px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 10px 25px -5px rgba(0, 0, 0, 0.1),
+    0 8px 10px -6px rgba(0, 0, 0, 0.1);
 }
 
 .dark .card-hover:hover {
-  box-shadow: 0 10px 25px -5px rgba(99, 102, 241, 0.4), 
-              0 8px 10px -6px rgba(138, 147, 255, 0.3),
-              0 0 40px rgba(99, 102, 241, 0.2);
+  box-shadow:
+    0 10px 25px -5px rgba(99, 102, 241, 0.4),
+    0 8px 10px -6px rgba(138, 147, 255, 0.3),
+    0 0 40px rgba(99, 102, 241, 0.2);
 }
 
 /* Button ripple effect */
@@ -282,7 +300,7 @@ body {
 }
 
 .button-ripple::after {
-  content: '';
+  content: "";
   position: absolute;
   top: 50%;
   left: 50%;
@@ -291,7 +309,9 @@ body {
   border-radius: 50%;
   background: rgba(255, 255, 255, 0.5);
   transform: translate(-50%, -50%);
-  transition: width 0.6s, height 0.6s;
+  transition:
+    width 0.6s,
+    height 0.6s;
 }
 
 .button-ripple:active::after {
@@ -311,22 +331,12 @@ body {
 
 .skeleton {
   animation: shimmer 2s infinite linear;
-  background: linear-gradient(
-    to right,
-    #f0f0f0 0%,
-    #e0e0e0 50%,
-    #f0f0f0 100%
-  );
+  background: linear-gradient(to right, #f0f0f0 0%, #e0e0e0 50%, #f0f0f0 100%);
   background-size: 2000px 100%;
 }
 
 .dark .skeleton {
-  background: linear-gradient(
-    to right,
-    #1f2937 0%,
-    #374151 50%,
-    #1f2937 100%
-  );
+  background: linear-gradient(to right, #1f2937 0%, #374151 50%, #1f2937 100%);
   background-size: 2000px 100%;
 }
 
@@ -336,7 +346,7 @@ body {
     background: white;
     color: black;
   }
-  
+
   .no-print {
     display: none !important;
   }
@@ -385,352 +395,90 @@ body {
 /* Neon border effect for dark mode */
 .dark .neon-border {
   border: 2px solid rgba(99, 102, 241, 0.3);
-  box-shadow: 0 0 10px rgba(99, 102, 241, 0.5), 
-              inset 0 0 10px rgba(99, 102, 241, 0.2);
+  box-shadow:
+    0 0 10px rgba(99, 102, 241, 0.5),
+    inset 0 0 10px rgba(99, 102, 241, 0.2);
 }
 
 .dark .neon-border:hover {
   border-color: rgba(99, 102, 241, 0.6);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.7), 
-              inset 0 0 15px rgba(99, 102, 241, 0.3);
+  box-shadow:
+    0 0 20px rgba(99, 102, 241, 0.7),
+    inset 0 0 15px rgba(99, 102, 241, 0.3);
 }
-/* ===== ENHANCED DARK MODE STYLES ===== */
+/* ===== DARK MODE ENHANCEMENTS ===== */
+/* These styles ONLY enhance dark mode appearance.
+   They use the .dark prefix which only applies when dark mode is active.
+   No !important on text colors to avoid overriding Tailwind utilities. */
 
-/* Glowing numbers and values in dark mode */
-.dark .text-3xl,
-.dark .text-4xl,
-.dark .text-5xl,
-.dark .text-6xl {
-  color: #ffffff;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8),
-               0 0 30px rgba(138, 147, 255, 0.6),
-               0 0 40px rgba(99, 102, 241, 0.4);
-  font-weight: 700;
+/* Dark mode card backgrounds */
+.dark .bg-white {
+  background: rgba(15, 23, 42, 0.8);
+  border-color: rgba(138, 147, 255, 0.2);
 }
 
-/* Glowing stat values */
-.dark [class*="text-"][class*="font-bold"],
-.dark .font-semibold {
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.6),
-               0 0 25px rgba(138, 147, 255, 0.4);
+.dark .bg-gray-50,
+.dark .bg-gray-100 {
+  background: rgba(15, 23, 42, 0.6);
 }
 
-/* Specific glow for percentage and currency values */
-.dark span:has(> *):not(:empty),
-.dark div > span {
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-/* Enhanced card content visibility */
-.dark .bg-white p,
-.dark .bg-white span,
-.dark .bg-white div {
-  color: #e5e7eb !important;
-}
-
-/* Super bright numbers in stat cards */
-.dark h1, 
-.dark h2:not(.text-2xl), 
-.dark h3:not(.text-lg) {
-  color: #ffffff !important;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.9),
-               0 0 35px rgba(138, 147, 255, 0.7),
-               0 0 50px rgba(99, 102, 241, 0.5);
-  font-weight: 700 !important;
-}
-
-/* Glowing labels and subtitles */
-.dark .text-gray-500,
-.dark .text-gray-600,
-.dark .text-gray-400 {
-  color: #d1d5db !important;
-  text-shadow: 0 0 8px rgba(209, 213, 219, 0.4);
-}
-
-/* Enhanced percentage indicators */
-.dark .text-green-500,
-.dark .text-red-500 {
-  text-shadow: 0 0 15px currentColor,
-               0 0 25px currentColor;
-  font-weight: 600;
-}
-
-/* Glowing icons in dark mode */
-.dark svg {
-  filter: drop-shadow(0 0 10px rgba(138, 147, 255, 0.6));
-}
-
-/* Enhanced table text */
-.dark table td,
-.dark table th {
-  color: #f3f4f6 !important;
-  text-shadow: 0 0 5px rgba(243, 244, 246, 0.3);
-}
-
-/* Glowing badge/pill text */
-.dark .rounded-full,
-.dark .rounded-lg {
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.4);
-}
-
-/* Enhanced input visibility */
+/* Dark mode input styling */
 .dark input,
 .dark textarea,
 .dark select {
-  color: #ffffff !important;
-  text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
-  background: rgba(31, 41, 55, 0.8) !important;
-  border-color: rgba(138, 147, 255, 0.3) !important;
+  background: rgba(31, 41, 55, 0.8);
+  border-color: rgba(138, 147, 255, 0.3);
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: #9ca3af !important;
+  color: #9ca3af;
 }
 
-/* Glowing sidebar badges */
-.dark .rounded-full.bg-gray-100,
-.dark .rounded-full.bg-white {
-  background: rgba(99, 102, 241, 0.3) !important;
-  color: #ffffff !important;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.6);
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.5);
-}
-
-/* Enhanced chart visibility */
-.dark canvas {
-  filter: brightness(1.2) contrast(1.1);
-}
-
-/* Glowing percentage changes */
-.dark [class*="text-green"],
-.dark [class*="text-red"],
-.dark [class*="text-yellow"] {
-  font-weight: 600;
-  text-shadow: 0 0 15px currentColor,
-               0 0 25px currentColor;
-}
-
-/* Enhanced empty state text */
-.dark .text-center p,
-.dark .text-center span {
-  color: #d1d5db !important;
-  text-shadow: 0 0 10px rgba(209, 213, 219, 0.4);
-}
-
-/* Pulsing glow animation for important numbers */
-@keyframes pulseGlowText {
-  0%, 100% {
-    text-shadow: 0 0 20px rgba(255, 255, 255, 0.9),
-                 0 0 35px rgba(138, 147, 255, 0.7),
-                 0 0 50px rgba(99, 102, 241, 0.5);
-  }
-  50% {
-    text-shadow: 0 0 30px rgba(255, 255, 255, 1),
-                 0 0 50px rgba(138, 147, 255, 0.9),
-                 0 0 70px rgba(99, 102, 241, 0.7);
-  }
-}
-
-.dark .animate-pulse-glow-text {
-  animation: pulseGlowText 3s ease-in-out infinite;
-}
-
-/* Enhanced settings page dark mode */
-.dark .min-h-screen {
-  background: transparent !important;
-}
-
-/* Glowing profile text in settings */
-.dark .text-2xl.font-bold {
-  color: #ffffff !important;
-  text-shadow: 0 0 25px rgba(255, 255, 255, 0.8),
-               0 0 40px rgba(138, 147, 255, 0.6);
-}
-
-/* Enhanced visibility for all text in dark cards */
-.dark .bg-white * {
-  color: inherit;
-}
-
-.dark .bg-white h1,
-.dark .bg-white h2,
-.dark .bg-white h3 {
-  color: #ffffff !important;
-}
-
-/* Glowing toggle switches */
-.dark button[role="switch"] {
-  box-shadow: 0 0 15px rgba(99, 102, 241, 0.5);
-}
-
-/* Enhanced notification badges */
-.dark .bg-red-500 {
-  box-shadow: 0 0 20px rgba(239, 68, 68, 0.8);
-}
-
-/* Glowing search input */
+/* Dark mode search input */
 .dark input[type="search"],
 .dark input[placeholder*="Search"] {
-  background: rgba(31, 41, 55, 0.9) !important;
-  border: 2px solid rgba(138, 147, 255, 0.3) !important;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3);
+  background: rgba(31, 41, 55, 0.9);
+  border: 2px solid rgba(138, 147, 255, 0.3);
 }
 
-.dark input[type="search"]:focus,
-.dark input[placeholder*="Search"]:focus {
-  border-color: rgba(138, 147, 255, 0.6) !important;
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.5);
+/* Dark mode SVG icon glow */
+.dark svg {
+  filter: drop-shadow(0 0 6px rgba(138, 147, 255, 0.4));
 }
 
-/* Enhanced dropdown visibility */
+/* Dark mode table text */
+.dark table td,
+.dark table th {
+  color: #f3f4f6;
+}
+
+/* Dark mode button glow */
+.dark button.bg-indigo-600,
+.dark .bg-indigo-600 {
+  box-shadow: 0 0 20px rgba(99, 102, 241, 0.4);
+}
+
+/* Dark mode sidebar widget */
+.dark aside .bg-white {
+  background: rgba(15, 23, 42, 0.9);
+  border: 1px solid rgba(138, 147, 255, 0.3);
+}
+
+/* Dark mode settings page */
+.dark .min-h-screen {
+  background: transparent;
+}
+
+/* Dark mode notification badge */
+.dark .bg-red-500 {
+  box-shadow: 0 0 15px rgba(239, 68, 68, 0.6);
+}
+
+/* Dark mode dropdown options */
 .dark select option {
   background: #1f2937;
   color: #ffffff;
-}
-
-/* Glowing currency display */
-.dark .text-gray-900 {
-  color: #ffffff !important;
-  text-shadow: 0 0 15px rgba(255, 255, 255, 0.6);
-}
-
-/* Enhanced date/time display */
-.dark time,
-.dark .text-gray-500 {
-  color: #d1d5db !important;
-}
-/* ===== HELP SUPPORT WIDGET DARK MODE FIX ===== */
-
-/* Help widget container in dark mode */
-.dark .bg-white.rounded-lg.shadow-sm,
-.dark .bg-white.rounded-xl,
-.dark .bg-gray-50 {
-  background: rgba(15, 23, 42, 0.8) !important;
-  border: 1px solid rgba(138, 147, 255, 0.3) !important;
-  box-shadow: 0 0 20px rgba(99, 102, 241, 0.3) !important;
-}
-
-/* Help widget title */
-.dark h3,
-.dark .text-lg.font-semibold {
-  color: #ffffff !important;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8),
-               0 0 30px rgba(138, 147, 255, 0.6);
-}
-
-/* Help widget subtitle/description */
-.dark .text-sm.text-gray-600,
-.dark .text-gray-500 {
-  color: #d1d5db !important;
-  text-shadow: 0 0 10px rgba(209, 213, 219, 0.5);
-}
-
-/* Specific fix for "Need Help?" widget */
-.dark [class*="bg-white"][class*="rounded"] h3,
-.dark [class*="bg-white"][class*="rounded"] p,
-.dark [class*="bg-white"][class*="rounded"] span {
-  color: #ffffff !important;
-}
-
-.dark [class*="bg-white"][class*="rounded"] .text-gray-600 {
-  color: #d1d5db !important;
-}
-
-/* Help button glow */
-.dark button.bg-indigo-600,
-.dark .bg-indigo-600 {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
-  box-shadow: 0 0 25px rgba(99, 102, 241, 0.6),
-              0 0 40px rgba(138, 147, 255, 0.4),
-              0 4px 15px rgba(0, 0, 0, 0.3) !important;
-  border: 1px solid rgba(138, 147, 255, 0.5) !important;
-}
-
-.dark button.bg-indigo-600:hover,
-.dark .bg-indigo-600:hover {
-  box-shadow: 0 0 35px rgba(99, 102, 241, 0.8),
-              0 0 55px rgba(138, 147, 255, 0.6),
-              0 6px 20px rgba(0, 0, 0, 0.4) !important;
-  transform: translateY(-2px);
-}
-
-/* Button text glow */
-.dark button.bg-indigo-600 span,
-.dark .bg-indigo-600 * {
-  color: #ffffff !important;
-  text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-}
-
-/* Force white text on light backgrounds in dark mode */
-.dark .bg-gray-50,
-.dark .bg-gray-100,
-.dark .bg-white {
-  background: rgba(15, 23, 42, 0.8) !important;
-}
-
-.dark .bg-gray-50 *,
-.dark .bg-gray-100 *,
-.dark .bg-white * {
-  color: #e5e7eb !important;
-}
-
-.dark .bg-gray-50 h1,
-.dark .bg-gray-50 h2,
-.dark .bg-gray-50 h3,
-.dark .bg-gray-100 h1,
-.dark .bg-gray-100 h2,
-.dark .bg-gray-100 h3,
-.dark .bg-white h1,
-.dark .bg-white h2,
-.dark .bg-white h3 {
-  color: #ffffff !important;
-  text-shadow: 0 0 20px rgba(255, 255, 255, 0.8);
-}
-
-/* Sidebar help widget specific */
-.dark aside .bg-white,
-.dark nav ~ div .bg-white {
-  background: rgba(15, 23, 42, 0.9) !important;
-  border: 2px solid rgba(138, 147, 255, 0.4) !important;
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.4) !important;
-}
-
-/* Enhanced button glow animation */
-@keyframes buttonGlow {
-  0%, 100% {
-    box-shadow: 0 0 25px rgba(99, 102, 241, 0.6),
-                0 0 40px rgba(138, 147, 255, 0.4),
-                0 4px 15px rgba(0, 0, 0, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 40px rgba(99, 102, 241, 0.9),
-                0 0 60px rgba(138, 147, 255, 0.6),
-                0 6px 20px rgba(0, 0, 0, 0.4);
-  }
-}
-
-.dark button.bg-indigo-600 {
-  animation: buttonGlow 3s ease-in-out infinite;
-}
-
-/* Card text contrast boost */
-.dark .rounded-lg p,
-.dark .rounded-xl p,
-.dark .shadow-sm p {
-  color: #f3f4f6 !important;
-  font-weight: 500;
-}
-
-/* Ensure all nested text is visible */
-.dark div[class*="bg-"] > * {
-  color: #e5e7eb !important;
-}
-
-.dark div[class*="bg-"] > h1,
-.dark div[class*="bg-"] > h2,
-.dark div[class*="bg-"] > h3 {
-  color: #ffffff !important;
 }
 /* ===== HELP & SUPPORT PAGE ICON FIX ===== */
 
@@ -738,31 +486,20 @@ body {
 .dark .bg-blue-100,
 .dark .bg-green-100,
 .dark .bg-purple-100 {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.2) 0%, rgba(138, 147, 255, 0.3) 100%) !important;
+  background: linear-gradient(
+    135deg,
+    rgba(99, 102, 241, 0.2) 0%,
+    rgba(138, 147, 255, 0.3) 100%
+  ) !important;
   border: 2px solid rgba(138, 147, 255, 0.5) !important;
   box-shadow: 0 0 30px rgba(99, 102, 241, 0.4) !important;
 }
 
-/* Make all icons visible in dark mode */
-.dark svg,
-.dark svg path,
-.dark svg circle,
-.dark svg rect {
-  fill: currentColor !important;
-  stroke: currentColor !important;
-  color: #ffffff !important;
-  filter: drop-shadow(0 0 15px rgba(255, 255, 255, 0.8)) 
-          drop-shadow(0 0 25px rgba(138, 147, 255, 0.6));
-}
-
-/* Icon container glow */
-.dark .w-16.h-16.rounded-full,
-.dark .w-20.h-20.rounded-full,
-.dark [class*="w-"][class*="h-"][class*="rounded-full"] {
-  background: linear-gradient(135deg, rgba(99, 102, 241, 0.3) 0%, rgba(138, 147, 255, 0.4) 100%) !important;
-  border: 2px solid rgba(138, 147, 255, 0.6) !important;
-  box-shadow: 0 0 35px rgba(99, 102, 241, 0.5),
-              0 0 50px rgba(138, 147, 255, 0.3) !important;
+/* Dark mode icon visibility - only add subtle glow, no color override */
+.dark .support-icon-chat svg,
+.dark .support-icon-email svg,
+.dark .support-icon-phone svg {
+  filter: drop-shadow(0 0 10px rgba(138, 147, 255, 0.4));
 }
 
 /* Specific icon colors for each support type */
@@ -808,14 +545,16 @@ body {
 /* Button glow on support cards */
 .dark .support-card button {
   background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%) !important;
-  box-shadow: 0 0 30px rgba(99, 102, 241, 0.6),
-              0 0 45px rgba(138, 147, 255, 0.4) !important;
+  box-shadow:
+    0 0 30px rgba(99, 102, 241, 0.6),
+    0 0 45px rgba(138, 147, 255, 0.4) !important;
   border: 2px solid rgba(138, 147, 255, 0.5) !important;
 }
 
 .dark .support-card button:hover {
-  box-shadow: 0 0 40px rgba(99, 102, 241, 0.8),
-              0 0 60px rgba(138, 147, 255, 0.6) !important;
+  box-shadow:
+    0 0 40px rgba(99, 102, 241, 0.8),
+    0 0 60px rgba(138, 147, 255, 0.6) !important;
 }
 /* ===== 3D LIGHT MODE EFFECTS ===== */
 
@@ -829,19 +568,22 @@ body {
   transform: translateZ(20px) rotateX(5deg) rotateY(5deg);
 }
 
-/* 3D button effects in light mode */
-button:not(.dark button) {
+/* 3D button effects - opt-in only via .btn-3d class */
+.btn-3d {
   transform: perspective(1000px) translateZ(0);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
 }
 
-button:not(.dark button):hover {
+.btn-3d:hover {
   transform: perspective(1000px) translateZ(10px);
-  box-shadow: 0 15px 35px rgba(99, 102, 241, 0.3),
-              0 5px 15px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 15px 35px rgba(99, 102, 241, 0.3),
+    0 5px 15px rgba(0, 0, 0, 0.1);
 }
 
-button:not(.dark button):active {
+.btn-3d:active {
   transform: perspective(1000px) translateZ(5px);
 }
 
@@ -853,13 +595,15 @@ button:not(.dark button):active {
 
 .stat-card:hover {
   transform: translateZ(15px) rotateX(2deg) rotateY(2deg);
-  box-shadow: 0 20px 40px rgba(99, 102, 241, 0.2),
-              0 10px 20px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0 20px 40px rgba(99, 102, 241, 0.2),
+    0 10px 20px rgba(0, 0, 0, 0.1);
 }
 
 /* Floating animation for light mode */
 @keyframes float {
-  0%, 100% {
+  0%,
+  100% {
     transform: translateY(0px) translateZ(0px);
   }
   50% {
@@ -906,33 +650,36 @@ button:not(.dark button):active {
 
 /* Light mode gradient backgrounds with depth */
 .gradient-bg-light {
-  background: linear-gradient(135deg, 
+  background: linear-gradient(
+    135deg,
     rgba(99, 102, 241, 0.1) 0%,
     rgba(139, 92, 246, 0.1) 50%,
-    rgba(236, 72, 153, 0.1) 100%);
+    rgba(236, 72, 153, 0.1) 100%
+  );
   position: relative;
 }
 
 .gradient-bg-light::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: 0;
-  background: linear-gradient(225deg, 
+  background: linear-gradient(
+    225deg,
     rgba(255, 255, 255, 0.8) 0%,
-    rgba(255, 255, 255, 0.4) 100%);
-  
+    rgba(255, 255, 255, 0.4) 100%
+  );
 }
 
 /* 3D shadow for cards in light mode */
 .shadow-3d {
-  box-shadow: 
+  box-shadow:
     0 1px 3px rgba(99, 102, 241, 0.1),
     0 10px 20px rgba(99, 102, 241, 0.1),
     0 20px 40px rgba(99, 102, 241, 0.05);
 }
 
 .shadow-3d:hover {
-  box-shadow: 
+  box-shadow:
     0 5px 15px rgba(99, 102, 241, 0.2),
     0 20px 40px rgba(99, 102, 241, 0.15),
     0 30px 60px rgba(99, 102, 241, 0.1);
@@ -944,7 +691,7 @@ button:not(.dark button):active {
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
   border: 1px solid rgba(255, 255, 255, 0.8);
-  box-shadow: 
+  box-shadow:
     0 8px 32px rgba(99, 102, 241, 0.15),
     inset 0 1px 1px rgba(255, 255, 255, 0.9);
   transform-style: preserve-3d;
@@ -973,7 +720,7 @@ button:not(.dark button):active {
 
 /* Layered shadow effect */
 .layered-shadow {
-  box-shadow: 
+  box-shadow:
     0 1px 1px rgba(99, 102, 241, 0.08),
     0 2px 2px rgba(99, 102, 241, 0.08),
     0 4px 4px rgba(99, 102, 241, 0.08),
@@ -983,7 +730,7 @@ button:not(.dark button):active {
 
 /* 3D text effect */
 .text-3d {
-  text-shadow: 
+  text-shadow:
     1px 1px 0 rgba(99, 102, 241, 0.1),
     2px 2px 0 rgba(99, 102, 241, 0.08),
     3px 3px 0 rgba(99, 102, 241, 0.06),
@@ -1027,7 +774,7 @@ button:not(.dark button):active {
 }
 
 .ripple-effect::after {
-  content: '';
+  content: "";
   position: absolute;
   width: 100%;
   height: 100%;
@@ -1036,7 +783,6 @@ button:not(.dark button):active {
   transform: translate(-50%, -50%) scale(0);
   border-radius: 50%;
   background: rgba(99, 102, 241, 0.3);
-  
 }
 
 .ripple-effect:active::after {
@@ -1044,11 +790,21 @@ button:not(.dark button):active {
 }
 
 /* Depth layers for complex components */
-.depth-1 { transform: translateZ(10px); }
-.depth-2 { transform: translateZ(20px); }
-.depth-3 { transform: translateZ(30px); }
-.depth-4 { transform: translateZ(40px); }
-.depth-5 { transform: translateZ(50px); }
+.depth-1 {
+  transform: translateZ(10px);
+}
+.depth-2 {
+  transform: translateZ(20px);
+}
+.depth-3 {
+  transform: translateZ(30px);
+}
+.depth-4 {
+  transform: translateZ(40px);
+}
+.depth-5 {
+  transform: translateZ(50px);
+}
 
 /* Isometric card effect */
 .isometric-card {
@@ -1061,24 +817,29 @@ button:not(.dark button):active {
   transform: rotateX(0deg) rotateY(0deg) translateZ(20px);
 }
 
-/* Light mode specific card enhancements */
-.bg-white:not(.dark .bg-white) {
-  background: linear-gradient(135deg, 
+/* Light mode specific card enhancements - opt-in via .card-enhanced */
+.card-enhanced {
+  background: linear-gradient(
+    135deg,
     rgba(255, 255, 255, 0.9) 0%,
-    rgba(249, 250, 251, 0.9) 100%);
+    rgba(249, 250, 251, 0.9) 100%
+  );
   transform-style: preserve-3d;
 }
 
-.bg-white:not(.dark .bg-white):hover {
-  background: linear-gradient(135deg, 
+.card-enhanced:hover {
+  background: linear-gradient(
+    135deg,
     rgba(255, 255, 255, 1) 0%,
-    rgba(249, 250, 251, 1) 100%);
+    rgba(249, 250, 251, 1) 100%
+  );
   transform: translateY(-5px) translateZ(10px);
 }
 
 /* Animated gradient border */
 @keyframes borderGradient {
-  0%, 100% {
+  0%,
+  100% {
     background-position: 0% 50%;
   }
   50% {
@@ -1091,7 +852,7 @@ button:not(.dark button):active {
 }
 
 .gradient-border::before {
-  content: '';
+  content: "";
   position: absolute;
   inset: -2px;
   border-radius: inherit;
@@ -1104,85 +865,45 @@ button:not(.dark button):active {
   );
   background-size: 200% 200%;
   animation: borderGradient 3s ease infinite;
-  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
   -webkit-mask-composite: xor;
   mask-composite: exclude;
-  
 }
-/* FORCE HEADER BUTTONS TO BE CLICKABLE */
-header button,
-header a {
-  pointer-events: auto !important;
-  cursor: pointer !important;
-  position: relative !important;
-  z-index: 100 !important;
-}
-
-header button:hover,
-header a:hover {
-  opacity: 0.8 !important;
-}
-
-/* Ensure no overlay blocks header */
-header {
-  position: relative !important;
-  z-index: 9999 !important;
-  pointer-events: auto !important;
-}
-
-header * {
-  pointer-events: auto !important;
-}
-
-/* Fix for dropdowns */
-.dropdown-menu {
-  pointer-events: auto !important;
-  z-index: 10000 !important;
-}
-button,
-a {
-  pointer-events: auto !important;
-}
-
-::before,
-::after {
-  pointer-events: none !important;
-}
-/* ===== FINAL FIX: FORCE BUTTONS TO BE CLICKABLE ===== */
-
-/* Force all interactive elements to be clickable */
-button,
-a,
-input,
-select,
-textarea {
-  pointer-events: auto !important;
-}
-
-/* Force all decorative pseudo-elements to NOT block clicks */
+/* Decorative pseudo-elements should not block clicks */
 *::before,
 *::after {
-  pointer-events: none !important;
+  pointer-events: none;
 }
 
-/* Ensure header and its children are always clickable */
-header,
-header *,
-header button,
-header a {
-  pointer-events: auto !important;
-  cursor: pointer !important;
+/* Blob animation for floating gradient shapes */
+@keyframes blob {
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
-/* Fix for dropdowns */
-.dropdown-menu {
-  pointer-events: auto !important;
-  z-index: 10000 !important;
+.animate-blob {
+  animation: blob 7s infinite;
 }
 
-/* Override any framer-motion or animation library conflicts */
-[data-framer-component],
-[data-framer-name] {
-  pointer-events: auto !important;
+.animation-delay-2000 {
+  animation-delay: 2s;
+}
+
+.animation-delay-4000 {
+  animation-delay: 4s;
 }

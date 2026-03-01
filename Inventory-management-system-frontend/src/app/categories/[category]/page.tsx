@@ -40,7 +40,8 @@ export default function CategoryDetailPage() {
   const fetchCategoryProducts = async () => {
     try {
       const response = await getProducts()
-      const filtered = response.data.filter((p: Product) => 
+      const allProducts = Array.isArray(response) ? response : (response?.data || [])
+      const filtered = allProducts.filter((p: Product) => 
         p.category.toLowerCase() === categoryName.toLowerCase()
       )
       setProducts(filtered)

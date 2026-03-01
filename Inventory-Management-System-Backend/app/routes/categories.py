@@ -1,5 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from sqlalchemy import func, case
 from typing import List
 
 from ..database import get_db
@@ -7,6 +8,32 @@ from .. import models
 from ..schemas.category import CategoryCreate, CategoryOut, CategoryUpdate
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
+
+@router.get("/summary")
+def get_categories_summary(db: Session = Depends(get_db)):
+    """Get categories derived from products with counts"""
+    results = db.query(
+        models.product.Product.category,
+        func.count(models.product.Product.id).label("product_count"),
+        func.coalesce(func.sum(models.product.Product.stock), 0).label("total_stock"),
+        func.sum(
+            case(
+                (models.product.Product.stock < models.product.Product.min_stock, 1),
+                else_=0
+            )
+        ).label("low_stock_items")
+    ).group_by(models.product.Product.category).all()
+
+    return [
+        {
+            "id": idx + 1,
+            "name": r.category,
+            "product_count": r.product_count,
+            "total_stock": r.total_stock,
+            "low_stock_items": r.low_stock_items,
+        }
+        for idx, r in enumerate(results)
+    ]
 
 @router.post("/", response_model=CategoryOut, status_code=status.HTTP_201_CREATED)
 def create_category(payload: CategoryCreate, db: Session = Depends(get_db)):

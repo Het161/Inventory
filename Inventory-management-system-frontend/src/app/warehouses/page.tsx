@@ -2,9 +2,10 @@
 
 import MainLayout from '../../components/layout/MainLayout'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Warehouse as WarehouseIcon, MapPin, Users, Package, Plus, X, Save } from 'lucide-react'
+import { Warehouse as WarehouseIcon, MapPin, Users, Package, Plus, X, Save, Trash2 } from 'lucide-react'
 import WarehouseVisualization from '../../components/3d/WarehouseModel'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { getWarehouses, createWarehouse, deleteWarehouse } from '../../lib/api'
 
 interface WarehouseData {
   id: string
@@ -19,58 +20,43 @@ interface WarehouseData {
 
 export default function WarehousesPage() {
   const [showAddModal, setShowAddModal] = useState(false)
-  const [warehouses, setWarehouses] = useState<WarehouseData[]>([
-    {
-      id: 'WH001',
-      name: 'Central Warehouse',
-      location: 'Dhaka, Tejgaon Industrial Area',
-      capacity: 50000,
-      used: 42500,
-      products: 1245,
-      staff: 12,
-      status: 'active'
-    },
-    {
-      id: 'WH002',
-      name: 'North Regional',
-      location: 'Chittagong, Karnaphuli',
-      capacity: 30000,
-      used: 25800,
-      products: 856,
-      staff: 8,
-      status: 'active'
-    },
-    {
-      id: 'WH003',
-      name: 'South Distribution',
-      location: 'Sylhet, Zindabazar',
-      capacity: 20000,
-      used: 18200,
-      products: 634,
-      staff: 6,
-      status: 'active'
-    },
-    {
-      id: 'WH004',
-      name: 'East Zone',
-      location: 'Cumilla, Kandirpar',
-      capacity: 25000,
-      used: 15000,
-      products: 456,
-      staff: 7,
-      status: 'active'
-    },
-    {
-      id: 'WH005',
-      name: 'West Logistics',
-      location: 'Rajshahi, Shaheb Bazar',
-      capacity: 15000,
-      used: 12000,
-      products: 389,
-      staff: 5,
-      status: 'active'
-    },
-  ])
+  const [warehouses, setWarehouses] = useState<WarehouseData[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchWarehouses()
+  }, [])
+
+  const fetchWarehouses = async () => {
+    try {
+      const data = await getWarehouses()
+      if (Array.isArray(data) && data.length > 0) {
+        setWarehouses(data.map((w: any) => ({
+          id: `WH${String(w.id).padStart(3, '0')}`,
+          dbId: w.id,
+          name: w.name,
+          location: w.location,
+          capacity: w.capacity || 10000,
+          used: w.current_stock || 0,
+          products: 0,
+          staff: 0,
+          status: (w.status || 'Active').toLowerCase() as 'active' | 'inactive'
+        })))
+      } else {
+        // Use sample data if API returns empty
+        setWarehouses([
+          { id: 'WH001', name: 'Central Warehouse', location: 'Dhaka, Tejgaon', capacity: 50000, used: 42500, products: 1245, staff: 12, status: 'active' },
+          { id: 'WH002', name: 'North Regional', location: 'Chittagong, Karnaphuli', capacity: 30000, used: 25800, products: 856, staff: 8, status: 'active' },
+        ])
+      }
+    } catch {
+      setWarehouses([
+        { id: 'WH001', name: 'Central Warehouse', location: 'Dhaka, Tejgaon', capacity: 50000, used: 42500, products: 1245, staff: 12, status: 'active' },
+      ])
+    } finally {
+      setLoading(false)
+    }
+  }
 
   const [newWarehouse, setNewWarehouse] = useState({
     name: '',
@@ -85,35 +71,27 @@ export default function WarehousesPage() {
     phone: '',
   })
 
-  const handleAddWarehouse = (e: React.FormEvent) => {
+  const handleAddWarehouse = async (e: React.FormEvent) => {
     e.preventDefault()
-    
-    const warehouse: WarehouseData = {
-      id: `WH${(warehouses.length + 1).toString().padStart(3, '0')}`,
-      name: newWarehouse.name,
-      location: `${newWarehouse.city}, ${newWarehouse.address}`,
-      capacity: parseInt(newWarehouse.capacity),
-      used: parseInt(newWarehouse.used),
-      products: parseInt(newWarehouse.products),
-      staff: parseInt(newWarehouse.staff),
-      status: 'active'
+    try {
+      await createWarehouse({
+        name: newWarehouse.name,
+        location: `${newWarehouse.city}, ${newWarehouse.address}`,
+        capacity: parseInt(newWarehouse.capacity),
+        current_stock: parseInt(newWarehouse.used) || 0,
+        manager: newWarehouse.manager,
+        status: 'Active'
+      })
+      setShowAddModal(false)
+      setNewWarehouse({
+        name: '', location: '', capacity: '', used: '', products: '', staff: '',
+        city: '', address: '', manager: '', phone: '',
+      })
+      fetchWarehouses()
+    } catch (error) {
+      console.error('Error creating warehouse:', error)
+      alert('Failed to add warehouse')
     }
-
-    setWarehouses([...warehouses, warehouse])
-    setShowAddModal(false)
-    setNewWarehouse({
-      name: '',
-      location: '',
-      capacity: '',
-      used: '',
-      products: '',
-      staff: '',
-      city: '',
-      address: '',
-      manager: '',
-      phone: '',
-    })
-    alert('✅ Warehouse added successfully!')
   }
 
   return (
@@ -414,7 +392,7 @@ export default function WarehousesPage() {
                         value={newWarehouse.phone}
                         onChange={(e) => setNewWarehouse({...newWarehouse, phone: e.target.value})}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="+880 1234-567890"
+                        placeholder="+91 98252 47312"
                       />
                     </div>
                   </div>

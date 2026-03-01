@@ -8,60 +8,115 @@ import {
   AlertTriangle, ArrowUpRight, ArrowDownRight, MoreVertical
 } from 'lucide-react'
 import { useCurrency } from '../../contexts/CurrencyContext'
+import { getProducts, getCustomers, getSales, getStockMovements } from '../../lib/api'
 import Link from 'next/link'
 
 export default function DashboardPage() {
   const { formatPrice } = useCurrency()
+  const [products, setProducts] = useState<any[]>([])
+  const [customers, setCustomers] = useState<any[]>([])
+  const [sales, setSales] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    fetchData()
+  }, [])
+
+  const fetchData = async () => {
+    try {
+      const [productsRes, customersRes, salesRes] = await Promise.all([
+        getProducts(),
+        getCustomers(),
+        getSales(),
+      ])
+      setProducts(Array.isArray(productsRes) ? productsRes : (productsRes?.data || []))
+      setCustomers(Array.isArray(customersRes) ? customersRes : (customersRes?.data || []))
+      setSales(Array.isArray(salesRes) ? salesRes : (salesRes?.data || []))
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      setProducts([])
+      setCustomers([])
+      setSales([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Real calculations
+  const totalRevenue = Array.isArray(products) ? products.reduce((sum: number, p: any) => sum + (p.stock * p.price), 0) : 0
+  const totalProducts = Array.isArray(products) ? products.length : 0
+  const totalOrders = Array.isArray(sales) ? sales.length : 0
+  const lowStockCount = Array.isArray(products) ? products.filter((p: any) => p.stock < p.min_stock).length : 0
+
+  // Real low stock products
+  const lowStockProducts = Array.isArray(products) 
+    ? products
+        .filter((p: any) => p.stock <= p.min_stock)
+        .sort((a: any, b: any) => a.stock - b.stock)
+        .slice(0, 5)
+        .map((p: any) => ({
+          name: p.name,
+          stock: p.stock,
+          sku: p.sku,
+          status: p.stock === 0 ? 'Critical' : 'Low',
+        }))
+    : []
+
+  // Real recent orders from sales
+  const recentOrders = Array.isArray(sales)
+    ? sales.slice(-5).reverse().map((s: any) => ({
+        id: s.memo_id || `ORD-${s.id}`,
+        customer: s.customer || 'Unknown',
+        amount: formatPrice(s.amount || 0),
+        status: s.status || 'Completed',
+        date: s.date || 'Recent',
+      }))
+    : []
 
   const stats = [
     {
       title: 'Total Revenue',
-      value: formatPrice(45231.89),
-      change: '+20.1%',
-      trend: 'up',
+      value: formatPrice(totalRevenue),
+      change: totalProducts > 0 ? '+' + totalProducts + ' items' : '0',
+      trend: 'up' as const,
       icon: DollarSign,
       color: 'bg-green-500',
     },
     {
       title: 'Total Products',
-      value: '1,234',
-      change: '+12.5%',
-      trend: 'up',
+      value: totalProducts.toLocaleString(),
+      change: totalProducts > 0 ? 'Active' : 'None',
+      trend: 'up' as const,
       icon: Package,
       color: 'bg-blue-500',
     },
     {
       title: 'Total Orders',
-      value: '456',
-      change: '+8.3%',
-      trend: 'up',
+      value: totalOrders.toLocaleString(),
+      change: totalOrders > 0 ? 'From sales' : 'No orders',
+      trend: 'up' as const,
       icon: ShoppingCart,
       color: 'bg-purple-500',
     },
     {
       title: 'Low Stock Items',
-      value: '23',
-      change: '-5.2%',
-      trend: 'down',
+      value: lowStockCount.toLocaleString(),
+      change: lowStockCount > 0 ? 'Needs attention' : 'All good',
+      trend: lowStockCount > 0 ? 'down' as const : 'up' as const,
       icon: AlertTriangle,
       color: 'bg-red-500',
     },
   ]
 
-  const recentOrders = [
-    { id: 'ORD-001', customer: 'Amit Patel', amount: formatPrice(2540), status: 'Completed', date: '2 hours ago' },
-    { id: 'ORD-002', customer: 'Priya Shah', amount: formatPrice(1890), status: 'Pending', date: '5 hours ago' },
-    { id: 'ORD-003', customer: 'Raj Kumar', amount: formatPrice(3200), status: 'Completed', date: '1 day ago' },
-    { id: 'ORD-004', customer: 'Neha Gupta', amount: formatPrice(1560), status: 'Processing', date: '1 day ago' },
-    { id: 'ORD-005', customer: 'Vikram Singh', amount: formatPrice(4200), status: 'Completed', date: '2 days ago' },
-  ]
-
-  const lowStockProducts = [
-    { name: 'Laptop Dell XPS 13', stock: 3, sku: 'LAP-001', status: 'Critical' },
-    { name: 'iPhone 15 Pro', stock: 5, sku: 'PHN-045', status: 'Low' },
-    { name: 'Samsung TV 55"', stock: 7, sku: 'TV-023', status: 'Low' },
-    { name: 'Sony Headphones', stock: 2, sku: 'AUD-012', status: 'Critical' },
-  ]
+  if (loading) {
+    return (
+      <MainLayout title="Dashboard" subtitle="Loading...">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Loading dashboard...</div>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout title="Dashboard" subtitle="Welcome back! Here's what's happening with your inventory today.">
@@ -130,25 +185,15 @@ export default function DashboardPage() {
               <table className="w-full">
                 <thead className="bg-gray-50 dark:bg-slate-700/50">
                   <tr>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Order ID
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Customer
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Amount
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Status
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">
-                      Date
-                    </th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Order ID</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Customer</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Status</th>
+                    <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 dark:text-gray-300 uppercase tracking-wider">Date</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100 dark:divide-slate-700">
-                  {recentOrders.map((order) => (
+                  {recentOrders.length > 0 ? recentOrders.map((order) => (
                     <tr key={order.id} className="hover:bg-gray-50 dark:hover:bg-slate-700/50 transition-colors">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="text-sm font-medium text-gray-900 dark:text-white">{order.id}</span>
@@ -161,7 +206,7 @@ export default function DashboardPage() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className={`px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-                          order.status === 'Completed'
+                          order.status === 'Completed' || order.status === 'Paid'
                             ? 'bg-green-100 dark:bg-green-900/30 text-green-800 dark:text-green-400'
                             : order.status === 'Pending'
                             ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800 dark:text-yellow-400'
@@ -174,7 +219,13 @@ export default function DashboardPage() {
                         {order.date}
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                    <tr>
+                      <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                        No orders yet. Create sales memos to see them here.
+                      </td>
+                    </tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -194,7 +245,7 @@ export default function DashboardPage() {
               <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">Items running low</p>
             </div>
             <div className="p-6 space-y-4">
-              {lowStockProducts.map((product) => (
+              {lowStockProducts.length > 0 ? lowStockProducts.map((product) => (
                 <div key={product.sku} className="flex items-start justify-between p-4 bg-gray-50 dark:bg-slate-700/50 rounded-lg hover:bg-gray-100 dark:hover:bg-slate-700 transition-all">
                   <div className="flex-1">
                     <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-1">
@@ -215,7 +266,12 @@ export default function DashboardPage() {
                     </div>
                   </div>
                 </div>
-              ))}
+              )) : (
+                <div className="text-center py-6 text-gray-500">
+                  <Package className="w-10 h-10 text-gray-300 mx-auto mb-2" />
+                  <p className="text-sm">All products are well-stocked!</p>
+                </div>
+              )}
               <Link href="/stock">
                 <button className="w-full py-3 bg-indigo-600 dark:bg-indigo-500 hover:bg-indigo-700 dark:hover:bg-indigo-600 text-white rounded-lg font-semibold text-sm transition-all dark:shadow-[0_0_25px_rgba(99,102,241,0.6)]">
                   Manage Stock

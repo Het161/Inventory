@@ -2,30 +2,27 @@
 
 import MainLayout from '../../components/layout/MainLayout'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Users, Briefcase, Award, Search, Plus, X, Save, Mail, Phone, DollarSign, Calendar, User } from 'lucide-react'
-import { useState } from 'react'
+import { Users, Briefcase, Award, Search, Plus, X, Save, Mail, Phone, DollarSign, Calendar, User, Trash2 } from 'lucide-react'
+import { useState, useEffect } from 'react'
+import { getStaff, createStaff, deleteStaff } from '../../lib/api'
 
 interface StaffMember {
-  id: string
+  id: number
   name: string
   email: string
   phone: string
   role: string
   department: string
   salary: number
-  status: 'Active' | 'Inactive' | 'On Leave'
-  joinDate: string
-  rating?: number
+  status: string
+  join_date?: string
 }
 
 export default function StaffManagementPage() {
   const [showAddModal, setShowAddModal] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
-  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([
-    { id: 'S001', name: 'John Doe', email: 'john@shanenterprise.com', phone: '+880 1234-567890', role: 'Manager', department: 'Sales', salary: 50000, status: 'Active', joinDate: 'Jan 2023', rating: 4.8 },
-    { id: 'S002', name: 'Jane Smith', email: 'jane@shanenterprise.com', phone: '+880 1234-567891', role: 'Supervisor', department: 'Operations', salary: 40000, status: 'Active', joinDate: 'Mar 2023', rating: 4.6 },
-    { id: 'S003', name: 'Bob Johnson', email: 'bob@shanenterprise.com', phone: '+880 1234-567892', role: 'Assistant', department: 'Warehouse', salary: 30000, status: 'Active', joinDate: 'Jun 2023', rating: 4.5 },
-  ])
+  const [staffMembers, setStaffMembers] = useState<StaffMember[]>([])
+  const [loading, setLoading] = useState(true)
 
   const [newStaff, setNewStaff] = useState({
     name: '',
@@ -39,36 +36,62 @@ export default function StaffManagementPage() {
     address: '',
   })
 
-  const handleAddStaff = (e: React.FormEvent) => {
-    e.preventDefault()
-    
-    const staff: StaffMember = {
-      id: `S${(staffMembers.length + 1).toString().padStart(3, '0')}`,
-      name: newStaff.name,
-      email: newStaff.email,
-      phone: newStaff.phone,
-      role: newStaff.role,
-      department: newStaff.department,
-      salary: parseInt(newStaff.salary),
-      status: 'Active',
-      joinDate: new Date(newStaff.joinDate).toLocaleDateString('en-US', { month: 'short', year: 'numeric' }),
-      rating: 4.5,
-    }
+  useEffect(() => {
+    fetchStaff()
+  }, [])
 
-    setStaffMembers([...staffMembers, staff])
-    setShowAddModal(false)
-    setNewStaff({
-      name: '',
-      email: '',
-      phone: '',
-      role: 'Assistant',
-      department: 'Sales',
-      salary: '',
-      joinDate: new Date().toISOString().split('T')[0],
-      emergencyContact: '',
-      address: '',
-    })
-    alert('✅ Staff member added successfully!')
+  const fetchStaff = async () => {
+    try {
+      const data = await getStaff()
+      setStaffMembers(Array.isArray(data) ? data : (data?.data || []))
+    } catch (error) {
+      console.error('Error fetching staff:', error)
+      setStaffMembers([])
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleAddStaff = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      await createStaff({
+        name: newStaff.name,
+        email: newStaff.email,
+        phone: newStaff.phone,
+        role: newStaff.role,
+        department: newStaff.department,
+        salary: parseInt(newStaff.salary),
+        status: 'Active',
+        join_date: newStaff.joinDate,
+      })
+      await fetchStaff()
+      setShowAddModal(false)
+      setNewStaff({
+        name: '',
+        email: '',
+        phone: '',
+        role: 'Assistant',
+        department: 'Sales',
+        salary: '',
+        joinDate: new Date().toISOString().split('T')[0],
+        emergencyContact: '',
+        address: '',
+      })
+    } catch (error) {
+      console.error('Error adding staff:', error)
+      alert('Failed to add staff member')
+    }
+  }
+
+  const handleDeleteStaff = async (staff: StaffMember) => {
+    if (!confirm(`Delete ${staff.name}?`)) return
+    try {
+      await deleteStaff(staff.id)
+      await fetchStaff()
+    } catch (error) {
+      console.error('Error deleting staff:', error)
+    }
   }
 
   const filteredStaff = staffMembers.filter(staff =>
@@ -79,7 +102,16 @@ export default function StaffManagementPage() {
   )
 
   const departments = Array.from(new Set(staffMembers.map(s => s.department)))
-  const avgRating = (staffMembers.reduce((sum, s) => sum + (s.rating || 0), 0) / staffMembers.length).toFixed(1)
+
+  if (loading) {
+    return (
+      <MainLayout title="Staff Management" subtitle="Loading...">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-lg text-gray-600">Loading staff...</div>
+        </div>
+      </MainLayout>
+    )
+  }
 
   return (
     <MainLayout title="Staff Management" subtitle="Manage staff members and assignments">
@@ -113,8 +145,8 @@ export default function StaffManagementPage() {
           className="bg-white rounded-xl p-6 border border-gray-200"
         >
           <Award className="w-10 h-10 text-yellow-600 mb-3" />
-          <p className="text-sm text-gray-500">Avg Rating</p>
-          <p className="text-3xl font-bold text-gray-900">{avgRating}</p>
+          <p className="text-sm text-gray-500">Active</p>
+          <p className="text-3xl font-bold text-gray-900">{staffMembers.filter(s => s.status === 'Active').length}</p>
         </motion.div>
       </div>
 
@@ -158,16 +190,16 @@ export default function StaffManagementPage() {
           <table className="w-full">
             <thead className="bg-gray-50 border-b border-gray-200">
               <tr>
-                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Staff ID</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Name</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Role</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Department</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Salary</th>
                 <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Status</th>
+                <th className="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-gray-200">
-              {filteredStaff.map((staff, idx) => (
+              {filteredStaff.length > 0 ? filteredStaff.map((staff, idx) => (
                 <motion.tr
                   key={staff.id}
                   initial={{ opacity: 0, y: 10 }}
@@ -175,7 +207,6 @@ export default function StaffManagementPage() {
                   transition={{ delay: idx * 0.05 }}
                   className="hover:bg-gray-50 transition-colors"
                 >
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">{staff.id}</td>
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-10 h-10 bg-gradient-to-br from-indigo-500 to-purple-500 rounded-full flex items-center justify-center text-white font-semibold">
@@ -189,7 +220,7 @@ export default function StaffManagementPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">{staff.role}</td>
                   <td className="px-6 py-4 text-sm text-gray-600">{staff.department}</td>
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">${staff.salary.toLocaleString()}</td>
+                  <td className="px-6 py-4 text-sm font-medium text-gray-900">₹{staff.salary?.toLocaleString()}</td>
                   <td className="px-6 py-4">
                     <span className={`px-3 py-1 rounded-full text-xs font-semibold ${
                       staff.status === 'Active' ? 'bg-green-100 text-green-700' :
@@ -199,21 +230,29 @@ export default function StaffManagementPage() {
                       {staff.status}
                     </span>
                   </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleDeleteStaff(staff)}
+                      className="text-red-600 hover:text-red-800 text-sm font-medium"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </button>
+                  </td>
                 </motion.tr>
-              ))}
+              )) : (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+                    {searchTerm ? 'No staff found matching your search' : 'No staff members yet. Click "Add Staff" to get started.'}
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>
 
-        {/* Pagination */}
-        <div className="px-6 py-4 border-t border-gray-200 flex items-center justify-between">
+        {/* Footer */}
+        <div className="px-6 py-4 border-t border-gray-200">
           <p className="text-sm text-gray-600">Showing {filteredStaff.length} of {staffMembers.length} staff members</p>
-          <div className="flex gap-2">
-            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">Previous</button>
-            <button className="px-3 py-1 bg-indigo-600 text-white rounded">1</button>
-            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">2</button>
-            <button className="px-3 py-1 border border-gray-200 rounded hover:bg-gray-50">Next</button>
-          </div>
         </div>
       </motion.div>
 
@@ -262,7 +301,6 @@ export default function StaffManagementPage() {
                 {/* Modal Body */}
                 <form onSubmit={handleAddStaff} className="p-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    {/* Full Name */}
                     <div className="md:col-span-2">
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <User className="w-4 h-4 inline mr-2" />
@@ -278,7 +316,6 @@ export default function StaffManagementPage() {
                       />
                     </div>
 
-                    {/* Email */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <Mail className="w-4 h-4 inline mr-2" />
@@ -290,11 +327,10 @@ export default function StaffManagementPage() {
                         value={newStaff.email}
                         onChange={(e) => setNewStaff({...newStaff, email: e.target.value})}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="john@shanenterprise.com"
+                        placeholder="john@company.com"
                       />
                     </div>
 
-                    {/* Phone */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <Phone className="w-4 h-4 inline mr-2" />
@@ -306,15 +342,12 @@ export default function StaffManagementPage() {
                         value={newStaff.phone}
                         onChange={(e) => setNewStaff({...newStaff, phone: e.target.value})}
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="+880 1234-567890"
+                        placeholder="+91 98765-43210"
                       />
                     </div>
 
-                    {/* Role */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Role *
-                      </label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Role *</label>
                       <select
                         required
                         value={newStaff.role}
@@ -331,11 +364,8 @@ export default function StaffManagementPage() {
                       </select>
                     </div>
 
-                    {/* Department */}
                     <div>
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Department *
-                      </label>
+                      <label className="block text-sm font-semibold text-gray-700 mb-2">Department *</label>
                       <select
                         required
                         value={newStaff.department}
@@ -353,11 +383,10 @@ export default function StaffManagementPage() {
                       </select>
                     </div>
 
-                    {/* Salary */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <DollarSign className="w-4 h-4 inline mr-2" />
-                        Monthly Salary ($) *
+                        Monthly Salary (₹) *
                       </label>
                       <input
                         type="number"
@@ -369,7 +398,6 @@ export default function StaffManagementPage() {
                       />
                     </div>
 
-                    {/* Join Date */}
                     <div>
                       <label className="block text-sm font-semibold text-gray-700 mb-2">
                         <Calendar className="w-4 h-4 inline mr-2" />
@@ -383,34 +411,6 @@ export default function StaffManagementPage() {
                         className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
                       />
                     </div>
-
-                    {/* Emergency Contact */}
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Emergency Contact Number
-                      </label>
-                      <input
-                        type="tel"
-                        value={newStaff.emergencyContact}
-                        onChange={(e) => setNewStaff({...newStaff, emergencyContact: e.target.value})}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="+880 1234-567890"
-                      />
-                    </div>
-
-                    {/* Address */}
-                    <div className="md:col-span-2">
-                      <label className="block text-sm font-semibold text-gray-700 mb-2">
-                        Address
-                      </label>
-                      <textarea
-                        value={newStaff.address}
-                        onChange={(e) => setNewStaff({...newStaff, address: e.target.value})}
-                        rows={2}
-                        className="w-full px-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                        placeholder="Enter full address..."
-                      />
-                    </div>
                   </div>
 
                   {/* Preview Card */}
@@ -422,20 +422,16 @@ export default function StaffManagementPage() {
                           {newStaff.name ? newStaff.name.charAt(0).toUpperCase() : '?'}
                         </div>
                         <div>
-                          <p className="font-semibold text-gray-900">
-                            {newStaff.name || 'Staff Name'}
-                          </p>
+                          <p className="font-semibold text-gray-900">{newStaff.name || 'Staff Name'}</p>
                           <p className="text-sm text-gray-600">{newStaff.role} • {newStaff.department}</p>
-                          <p className="text-xs text-gray-400 mt-1">
-                            {newStaff.email || 'email@example.com'}
-                          </p>
+                          <p className="text-xs text-gray-400 mt-1">{newStaff.email || 'email@example.com'}</p>
                         </div>
                       </div>
                       {newStaff.salary && (
                         <div className="text-right">
                           <p className="text-sm text-gray-500">Monthly Salary</p>
                           <p className="text-lg font-bold text-gray-900">
-                            ${parseInt(newStaff.salary).toLocaleString()}
+                            ₹{parseInt(newStaff.salary).toLocaleString()}
                           </p>
                         </div>
                       )}

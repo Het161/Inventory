@@ -1,5 +1,6 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import { 
   LayoutDashboard, 
@@ -17,6 +18,7 @@ import {
   Settings,
   HelpCircle,
 } from 'lucide-react'
+import { getProducts, getWarehouses, getOutlets, getSales, getCustomers, getStaff } from '../../lib/api'
 
 interface MenuItem {
   title: string
@@ -28,6 +30,40 @@ interface MenuItem {
 export default function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
+  const [counts, setCounts] = useState({
+    products: 0,
+    warehouses: 0,
+    outlets: 0,
+    sales: 0,
+    customers: 0,
+    staff: 0,
+  })
+
+  useEffect(() => {
+    const fetchCounts = async () => {
+      try {
+        const [products, warehouses, outlets, sales, customers, staff] = await Promise.all([
+          getProducts().catch(() => []),
+          getWarehouses().catch(() => []),
+          getOutlets().catch(() => []),
+          getSales().catch(() => []),
+          getCustomers().catch(() => []),
+          getStaff().catch(() => []),
+        ])
+        setCounts({
+          products: Array.isArray(products) ? products.length : 0,
+          warehouses: Array.isArray(warehouses) ? warehouses.length : 0,
+          outlets: Array.isArray(outlets) ? outlets.length : 0,
+          sales: Array.isArray(sales) ? sales.length : 0,
+          customers: Array.isArray(customers) ? customers.length : 0,
+          staff: Array.isArray(staff) ? staff.length : 0,
+        })
+      } catch (error) {
+        console.error('Error fetching counts:', error)
+      }
+    }
+    fetchCounts()
+  }, [])
 
   const menuItems: { [key: string]: MenuItem[] } = {
     overview: [
@@ -35,20 +71,20 @@ export default function Sidebar() {
       { title: 'Global Search', icon: Search, href: '/search' },
     ],
     inventory: [
-      { title: 'Products', icon: Package, href: '/products', badge: 1234 },
-      { title: 'Warehouses', icon: Warehouse, href: '/warehouses', badge: 5 },
-      { title: 'Outlets', icon: Store, href: '/outlets', badge: 12 },
+      { title: 'Products', icon: Package, href: '/products', badge: counts.products || undefined },
+      { title: 'Warehouses', icon: Warehouse, href: '/warehouses', badge: counts.warehouses || undefined },
+      { title: 'Outlets', icon: Store, href: '/outlets', badge: counts.outlets || undefined },
       { title: 'Stock Management', icon: BarChart3, href: '/stock' },
       { title: 'Categories', icon: Layers, href: '/categories' },
     ],
     sales: [
-      { title: 'Sales Memos', icon: FileText, href: '/sales', badge: 456 },
+      { title: 'Sales Memos', icon: FileText, href: '/sales', badge: counts.sales || undefined },
       { title: 'Analytics', icon: TrendingUp, href: '/analytics' },
       { title: 'AI Agents', icon: Bot, href: '/ai-agents' },
     ],
     people: [
-      { title: 'Customers', icon: Users, href: '/customers', badge: 2845 },
-      { title: 'Staff Management', icon: UserCog, href: '/staff', badge: 48 },
+      { title: 'Customers', icon: Users, href: '/customers', badge: counts.customers || undefined },
+      { title: 'Staff Management', icon: UserCog, href: '/staff', badge: counts.staff || undefined },
     ],
     system: [
       { title: 'Settings', icon: Settings, href: '/settings' },
@@ -76,14 +112,14 @@ export default function Sidebar() {
           className="flex items-center gap-3 w-full text-left"
         >
           <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center dark:shadow-[0_0_20px_rgba(99,102,241,0.6)]">
-            <span className="text-white font-bold text-xl">W</span>
+            <span className="text-white font-bold text-sm">OM</span>
           </div>
           <div>
             <h1 className="text-lg font-bold text-gray-900 dark:text-white dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]">
-              WEB YOUR
+              OM MARKETING
             </h1>
             <h2 className="text-lg font-bold text-indigo-600 dark:text-indigo-400 dark:drop-shadow-[0_0_15px_rgba(99,102,241,0.8)]">
-              VYAVSAY
+              SOLUTIONS
             </h2>
             <p className="text-xs text-gray-500 dark:text-gray-400">
               Inventory Management System
