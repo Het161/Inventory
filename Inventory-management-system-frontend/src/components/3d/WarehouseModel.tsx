@@ -213,63 +213,8 @@ function Scene({ warehouses, onWarehouseClick }: {
   )
 }
 
-// Main Warehouse Visualization Component
-export default function WarehouseVisualization() {
+export default function WarehouseVisualization({ warehouses }: { warehouses: WarehouseData[] }) {
   const [selectedWarehouse, setSelectedWarehouse] = useState<WarehouseData | null>(null)
-  
-  // Sample data - replace with your API data
-  const warehouses: WarehouseData[] = [
-    {
-      id: 'WH001',
-      name: 'Central Warehouse',
-      location: 'Dhaka, Tejgaon Industrial Area',
-      capacity: 50000,
-      used: 42500,
-      products: 1245,
-      staff: 12,
-      status: 'active'
-    },
-    {
-      id: 'WH002',
-      name: 'North Regional',
-      location: 'Chittagong, Karnaphuli',
-      capacity: 30000,
-      used: 25800,
-      products: 856,
-      staff: 8,
-      status: 'active'
-    },
-    {
-      id: 'WH003',
-      name: 'South Distribution',
-      location: 'Sylhet, Zindabazar',
-      capacity: 20000,
-      used: 18200,
-      products: 634,
-      staff: 6,
-      status: 'active'
-    },
-    {
-      id: 'WH004',
-      name: 'East Zone',
-      location: 'Cumilla, Kandirpar',
-      capacity: 25000,
-      used: 15000,
-      products: 456,
-      staff: 7,
-      status: 'active'
-    },
-    {
-      id: 'WH005',
-      name: 'West Logistics',
-      location: 'Rajshahi, Shaheb Bazar',
-      capacity: 15000,
-      used: 12000,
-      products: 389,
-      staff: 5,
-      status: 'active'
-    },
-  ]
 
   const handleWarehouseClick = (warehouse: WarehouseData) => {
     setSelectedWarehouse(warehouse)

@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 import { useTheme } from '../../contexts/ThemeContext'
 import { useLanguage } from '../../contexts/LanguageContext'
+import { useAuth } from '../../contexts/AuthContext'
 
 type TabType = 'profile' | 'notifications' | 'security' | 'preferences'
 
@@ -88,7 +89,13 @@ export default function SettingsPage() {
 // Profile Header Component
 function ProfileHeader() {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const [profile, setProfile] = useState({ firstName: 'Het', lastName: 'Patel', role: 'Administrator', avatar: '' })
+  const { user } = useAuth()
+  const [profile, setProfile] = useState({ 
+    firstName: user?.name?.split(' ')[0] || 'Admin', 
+    lastName: user?.name?.split(' ').slice(1).join(' ') || 'User', 
+    role: 'Administrator', 
+    avatar: user?.avatar || '' 
+  })
   const [uploading, setUploading] = useState(false)
 
   useEffect(() => {
@@ -164,10 +171,13 @@ function ProfileHeader() {
 function ProfileSettings({ onSave }: { onSave: () => void }) {
   const [isEditing, setIsEditing] = useState(false)
   const { t } = useLanguage()
+  const { user } = useAuth()
   const [profile, setProfile] = useState({
-    firstName: 'Het', lastName: 'Patel', email: 'het@example.com',
-    phone: '+91 98765 43210', company: 'OM Marketing Solutions',
-    location: 'Gandhinagar, Gujarat', bio: 'Backend Developer & Inventory Management Specialist'
+    firstName: user?.name?.split(' ')[0] || 'Admin', 
+    lastName: user?.name?.split(' ').slice(1).join(' ') || 'User', 
+    email: user?.email || '',
+    phone: '', company: 'OM Marketing Solutions',
+    location: '', bio: ''
   })
 
   useEffect(() => {

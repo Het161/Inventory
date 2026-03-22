@@ -12,7 +12,7 @@ from ..database import get_db
 from ..models.user import User
 from ..schemas.auth import UserCreate, UserLogin, GoogleLogin, UserOut, TokenResponse
 from ..config import settings
-from ..email_service import send_welcome_email
+from ..email_service import send_welcome_email, send_login_email
 
 router = APIRouter(prefix="/api/auth", tags=["Authentication"])
 
@@ -110,6 +110,12 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     if not verify_password(user_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
+    # Send welcome-back email on login
+    try:
+        send_login_email(user.email, user.name)
+    except Exception as e:
+        print(f"[AUTH] Login email error: {e}")
+
     token = create_jwt({"user_id": user.id, "email": user.email})
     return TokenResponse(
         access_token=token,
@@ -146,6 +152,11 @@ def google_login(data: GoogleLogin, db: Session = Depends(get_db)):
         if data.avatar and not user.avatar:
             user.avatar = data.avatar
             db.commit()
+        # Send welcome-back email for returning Google users
+        try:
+            send_login_email(user.email, user.name)
+        except Exception:
+            pass
 
     token = create_jwt({"user_id": user.id, "email": user.email})
     return TokenResponse(

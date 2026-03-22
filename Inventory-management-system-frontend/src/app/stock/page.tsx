@@ -181,17 +181,23 @@ export default function StockManagementPage() {
           className="bg-white rounded-xl p-6 border border-gray-200"
         >
           <h3 className="text-lg font-bold text-gray-900 mb-4">Stock Movement Trend</h3>
-          <ResponsiveContainer width="100%" height={250}>
-            <LineChart data={chartData}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey="name" />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey="stockIn" stroke="#10b981" strokeWidth={2} name="Stock In" />
-              <Line type="monotone" dataKey="stockOut" stroke="#ef4444" strokeWidth={2} name="Stock Out" />
-            </LineChart>
-          </ResponsiveContainer>
+          {chartData.length > 0 ? (
+            <ResponsiveContainer width="100%" height={250}>
+              <LineChart data={chartData}>
+                <CartesianGrid strokeDasharray="3 3" />
+                <XAxis dataKey="name" />
+                <YAxis />
+                <Tooltip />
+                <Legend />
+                <Line type="monotone" dataKey="stockIn" stroke="#10b981" strokeWidth={2} name="Stock In" />
+                <Line type="monotone" dataKey="stockOut" stroke="#ef4444" strokeWidth={2} name="Stock Out" />
+              </LineChart>
+            </ResponsiveContainer>
+          ) : (
+            <div className="h-[250px] flex items-center justify-center text-gray-500 bg-gray-50/50 rounded-lg border border-dashed border-gray-200">
+              No stock movements recorded yet
+            </div>
+          )}
         </motion.div>
 
         {/* Product Stock Levels Chart */}

@@ -145,7 +145,7 @@ export default function WarehousesPage() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5 }}
       >
-        <WarehouseVisualization />
+        <WarehouseVisualization warehouses={warehouses} />
       </motion.div>
 
       {/* Warehouse List */}

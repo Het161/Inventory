@@ -2,20 +2,32 @@
 
 import { useState, useEffect } from 'react'
 import MainLayout from '../components/layout/MainLayout'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Package, TrendingUp, Users, ShoppingCart, ArrowUp, ArrowDown } from 'lucide-react'
 import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { getProducts, getCustomers, getSales } from '../lib/api'
 import { useCurrency } from '../contexts/CurrencyContext'
 import { useLanguage } from '../contexts/LanguageContext'
+import { useAuth } from '../contexts/AuthContext'
+import Onboarding from '../components/onboarding/Onboarding'
 
 export default function DashboardPage() {
   const { formatPrice, formatLargeNumber } = useCurrency()
   const { t } = useLanguage()
+  const { user } = useAuth()
+  const [showOnboarding, setShowOnboarding] = useState(false)
   const [products, setProducts] = useState<any[]>([])
   const [customers, setCustomers] = useState<any[]>([])
   const [sales, setSales] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    // Show onboarding if user hasn't completed it yet
+    const completed = localStorage.getItem('onboarding_completed')
+    if (!completed && user) {
+      setShowOnboarding(true)
+    }
+  }, [user])
 
   useEffect(() => {
     fetchData()
@@ -65,7 +77,7 @@ export default function DashboardPage() {
 
   if (loading) {
     return (
-      <MainLayout title={t('dashboard')} subtitle={t('welcomeBack')}>
+      <MainLayout title={t('dashboard')} subtitle={`Welcome back, ${user?.name || 'Admin'}!`}>
         <div className="flex items-center justify-center h-64">
           <div className="text-lg text-gray-600">Loading dashboard...</div>
         </div>
@@ -74,7 +86,14 @@ export default function DashboardPage() {
   }
 
   return (
-    <MainLayout title={t('dashboard')} subtitle={t('welcomeBack')}>
+    <>
+      <AnimatePresence>
+        {showOnboarding && (
+          <Onboarding onComplete={() => setShowOnboarding(false)} />
+        )}
+      </AnimatePresence>
+
+      <MainLayout title={t('dashboard')} subtitle={`Welcome back, ${user?.name || 'Admin'}!`}>
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
         <motion.div
@@ -205,6 +224,7 @@ export default function DashboardPage() {
           )}
         </motion.div>
       </div>
-    </MainLayout>
+      </MainLayout>
+    </>
   )
 }

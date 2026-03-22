@@ -109,22 +109,17 @@ export default function Sidebar() {
       <div className="p-6 border-b border-gray-200 dark:border-indigo-500/30 flex-shrink-0">
         <button 
           onClick={() => handleNavigation('/')}
-          className="flex items-center gap-3 w-full text-left"
+          className="flex flex-col items-center justify-center gap-2 w-full text-left"
         >
-          <div className="w-10 h-10 bg-gradient-to-br from-indigo-600 to-purple-600 rounded-lg flex items-center justify-center dark:shadow-[0_0_20px_rgba(99,102,241,0.6)]">
-            <span className="text-white font-bold text-sm">OM</span>
-          </div>
-          <div>
-            <h1 className="text-lg font-bold text-gray-900 dark:text-white dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.6)]">
-              OM MARKETING
-            </h1>
-            <h2 className="text-lg font-bold text-indigo-600 dark:text-indigo-400 dark:drop-shadow-[0_0_15px_rgba(99,102,241,0.8)]">
-              SOLUTIONS
-            </h2>
-            <p className="text-xs text-gray-500 dark:text-gray-400">
-              Inventory Management System
-            </p>
-          </div>
+          <img 
+            src="/logo.png" 
+            alt="OM Marketing Solutions Logo" 
+            className="w-32 object-contain dark:drop-shadow-[0_0_15px_rgba(255,255,255,0.4)]"
+            onError={(e) => {
+              // Fallback if logo not found
+              (e.target as HTMLImageElement).src = 'https://via.placeholder.com/150x80?text=OM+Marketing';
+            }}
+          />
         </button>
       </div>
 

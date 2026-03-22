@@ -4,30 +4,22 @@ import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Bell, Settings, Search, LogOut, User, Shield, ChevronDown } from 'lucide-react'
 import { useCurrency } from '../../contexts/CurrencyContext'
+import { useAuth } from '../../contexts/AuthContext'
 import { motion, AnimatePresence } from 'framer-motion'
 
 export default function Header() {
   const router = useRouter()
   const { currency, setCurrency } = useCurrency()
+  const { user, logout } = useAuth()
   const [showNotifications, setShowNotifications] = useState(false)
   const [showProfile, setShowProfile] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
-  const [profile, setProfile] = useState({ name: 'Admin', role: 'Administrator', avatar: '' })
-  const [notifications, setNotifications] = useState([
-    { id: 1, title: 'Low Stock Alert', message: 'Poco X6 Pro is running low on stock', time: '5 mins ago', unread: true },
-    { id: 2, title: 'New Order', message: 'Order #12345 has been placed', time: '1 hour ago', unread: true },
-    { id: 3, title: 'Stock Updated', message: 'Samsung Galaxy S24 stock updated', time: '3 hours ago', unread: false },
-  ])
+  const [notifications, setNotifications] = useState<any[]>([])
 
   const notificationRef = useRef<HTMLDivElement>(null)
   const profileRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const savedProfile = localStorage.getItem('userProfile')
-    if (savedProfile) {
-      setProfile(JSON.parse(savedProfile))
-    }
-  }, [])
+
 
   // Close dropdowns when clicking outside
   useEffect(() => {
@@ -56,31 +48,21 @@ export default function Header() {
   }
 
   const handleLogout = () => {
-    if (confirm('Are you sure you want to logout?')) {
-      localStorage.removeItem('userProfile')
-      localStorage.removeItem('userToken')
-      router.push('/login')
-    }
+    logout()
   }
 
   const unreadCount = notifications.filter(n => n.unread).length
 
   // Helper function to get user initials
   const getUserInitials = () => {
-    if (profile?.firstName && profile?.lastName) {
-      return profile.firstName.charAt(0).toUpperCase() + profile.lastName.charAt(0).toUpperCase()
-    }
-    if (profile?.name) {
-      const nameParts = profile.name.split(' ')
+    if (user?.name) {
+      const nameParts = user.name.split(' ')
       if (nameParts.length >= 2) {
         return nameParts[0].charAt(0).toUpperCase() + nameParts[1].charAt(0).toUpperCase()
       }
-      return profile.name.charAt(0).toUpperCase()
+      return user.name.charAt(0).toUpperCase()
     }
-    if (profile?.email) {
-      return profile.email.charAt(0).toUpperCase()
-    }
-    return 'A'
+    return 'U'
   }
 
   return (
@@ -214,16 +196,16 @@ export default function Header() {
               >
                 {/* Profile Avatar */}
                 <div className="w-10 h-10 rounded-full bg-indigo-100 flex items-center justify-center text-sm font-bold text-indigo-600 overflow-hidden">
-                  {profile.avatar ? (
-                    <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                  {user?.avatar ? (
+                    <img src={user.avatar} alt={user.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                   ) : (
                     getUserInitials()
                   )}
                 </div>
 
                 <div className="text-left hidden md:block">
-                  <div className="text-sm font-semibold text-gray-900">{profile.name}</div>
-                  <div className="text-xs text-gray-500">{profile.role}</div>
+                  <div className="text-sm font-semibold text-gray-900">{user?.name || 'User'}</div>
+                  <div className="text-xs text-gray-500">{user?.email || ''}</div>
                 </div>
                 <ChevronDown className="w-4 h-4 text-gray-400 hidden md:block" />
               </button>
@@ -239,15 +221,15 @@ export default function Header() {
                     <div className="p-4 border-b border-gray-200">
                       <div className="flex items-center gap-3">
                         <div className="w-12 h-12 rounded-full bg-indigo-600 flex items-center justify-center text-white font-bold overflow-hidden">
-                          {profile.avatar ? (
-                            <img src={profile.avatar} alt="Profile" className="w-full h-full object-cover" />
+                          {user?.avatar ? (
+                            <img src={user.avatar} alt={user?.name} className="w-full h-full object-cover" referrerPolicy="no-referrer" />
                           ) : (
                             getUserInitials()
                           )}
                         </div>
                         <div>
-                          <div className="font-semibold text-gray-900">{profile.name}</div>
-                          <div className="text-xs text-gray-500">{profile.role}</div>
+                          <div className="font-semibold text-gray-900">{user?.name || 'User'}</div>
+                          <div className="text-xs text-gray-500">{user?.email || ''}</div>
                         </div>
                       </div>
                     </div>

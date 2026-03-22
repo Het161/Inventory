@@ -2,8 +2,8 @@
 
 import MainLayout from '../../components/layout/MainLayout'
 import { motion, AnimatePresence } from 'framer-motion'
-import { Bot, Zap, Activity, TrendingUp, AlertCircle, CheckCircle, Clock, X, Settings, Play, Pause, RefreshCw } from 'lucide-react'
-import { useState, useEffect } from 'react'
+import { Bot, Zap, Activity, TrendingUp, AlertCircle, CheckCircle, Clock, X, Settings, Play, Pause, RefreshCw, Send, MessageSquare } from 'lucide-react'
+import { useState, useEffect, useRef } from 'react'
 import { AgentOrchestrator, AgentAction } from '../../utils/agents/AgentEngine'
 
 // Sample product data (in real app, this comes from your state/API)
@@ -33,6 +33,19 @@ export default function AIAgentsPage() {
   const [isRunning, setIsRunning] = useState(false)
   const [lastRun, setLastRun] = useState<Date | null>(null)
   const [orchestrator] = useState(() => new AgentOrchestrator(sampleProducts))
+  
+  const [activeTab, setActiveTab] = useState<'activity' | 'chat'>('activity')
+  const [chatMessages, setChatMessages] = useState<Record<string, {sender: 'user'|'agent', text: string}[]>>({})
+  const [currentMessage, setCurrentMessage] = useState('')
+  const chatEndRef = useRef<HTMLDivElement>(null)
+
+  const scrollToBottom = () => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  useEffect(() => {
+    if (activeTab === 'chat') scrollToBottom()
+  }, [chatMessages, activeTab])
 
   const agents: Agent[] = [
     {
@@ -212,7 +225,10 @@ export default function AIAgentsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={() => setSelectedAgentId(null)}
+              onClick={() => {
+                setSelectedAgentId(null)
+                setActiveTab('activity')
+              }}
               className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50"
             />
             
@@ -221,7 +237,10 @@ export default function AIAgentsPage() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.95, y: 20 }}
               className="fixed inset-0 z-50 flex items-center justify-center p-4"
-              onClick={() => setSelectedAgentId(null)}
+              onClick={() => {
+                setSelectedAgentId(null)
+                setActiveTab('activity')
+              }}
             >
               <div
                 onClick={(e) => e.stopPropagation()}
@@ -239,67 +258,176 @@ export default function AIAgentsPage() {
                     </div>
                   </div>
                   <button
-                    onClick={() => setSelectedAgentId(null)}
+                    onClick={() => {
+                      setSelectedAgentId(null)
+                      setActiveTab('activity')
+                    }}
                     className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
                   >
                     <X className="w-5 h-5 text-gray-500" />
                   </button>
                 </div>
 
-                {/* Modal Body */}
-                <div className="p-6">
-                  {/* Agent Stats */}
-                  <div className="grid grid-cols-3 gap-4 mb-6">
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-500 mb-1">Actions Detected</p>
-                      <p className="text-2xl font-bold text-gray-900">{selectedAgentActions.length}</p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-500 mb-1">Errors</p>
-                      <p className="text-2xl font-bold text-red-600">
-                        {selectedAgentActions.filter(a => a.status === 'error').length}
-                      </p>
-                    </div>
-                    <div className="bg-gray-50 rounded-lg p-4">
-                      <p className="text-sm text-gray-500 mb-1">Status</p>
-                      <p className="text-2xl font-bold text-green-600">{selectedAgent.status}</p>
-                    </div>
-                  </div>
+                {/* Modal Navigation Tabs */}
+                <div className="flex border-b border-gray-200 px-6 pt-2">
+                  <button
+                    onClick={() => setActiveTab('activity')}
+                    className={`pb-3 px-4 font-semibold text-sm border-b-2 transition-colors flex items-center gap-2 ${
+                      activeTab === 'activity' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <Activity className="w-4 h-4" />
+                    Activity Log
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('chat')}
+                    className={`pb-3 px-4 font-semibold text-sm border-b-2 transition-colors flex items-center gap-2 ${
+                      activeTab === 'chat' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+                    }`}
+                  >
+                    <MessageSquare className="w-4 h-4" />
+                    Chat with Agent
+                  </button>
+                </div>
 
-                  {/* Recent Activity */}
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">Recent Activity</h3>
-                    {selectedAgentActions.length === 0 ? (
-                      <div className="text-center py-8 text-gray-500">
-                        <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
-                        <p>No actions detected yet. Click "Run All Agents Now" to analyze your inventory.</p>
+                {/* Modal Body */}
+                <div className="p-6 bg-gray-50/30">
+                  {activeTab === 'activity' ? (
+                    <>
+                      {/* Agent Stats */}
+                      <div className="grid grid-cols-3 gap-4 mb-6">
+                        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                          <p className="text-sm text-gray-500 mb-1">Actions Detected</p>
+                          <p className="text-2xl font-bold text-gray-900">{selectedAgentActions.length}</p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                          <p className="text-sm text-gray-500 mb-1">Errors</p>
+                          <p className="text-2xl font-bold text-red-600">
+                            {selectedAgentActions.filter(a => a.status === 'error').length}
+                          </p>
+                        </div>
+                        <div className="bg-white rounded-lg p-4 border border-gray-200 shadow-sm">
+                          <p className="text-sm text-gray-500 mb-1">Status</p>
+                          <p className="text-2xl font-bold text-green-600">{selectedAgent.status}</p>
+                        </div>
                       </div>
-                    ) : (
-                      <div className="space-y-3">
-                        {selectedAgentActions.map((activity, idx) => (
-                          <motion.div
-                            key={activity.id}
-                            initial={{ opacity: 0, x: -20 }}
-                            animate={{ opacity: 1, x: 0 }}
-                            transition={{ delay: idx * 0.05 }}
-                            className="p-4 bg-gray-50 rounded-lg border border-gray-200"
-                          >
-                            <div className="flex items-start justify-between mb-2">
-                              <div className="flex items-center gap-2">
-                                <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${getStatusColor(activity.status)}`}>
-                                  {getStatusIcon(activity.status)}
-                                  {activity.status.toUpperCase()}
-                                </span>
-                                <span className="text-xs text-gray-400">{activity.timestamp}</span>
-                              </div>
+
+                      {/* Recent Activity */}
+                      <div className="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                        <div className="px-6 py-4 border-b border-gray-200 bg-gray-50">
+                          <h3 className="font-bold text-gray-900">Recent Activity</h3>
+                        </div>
+                        <div className="p-6">
+                          {selectedAgentActions.length === 0 ? (
+                            <div className="text-center py-8 text-gray-500">
+                              <Activity className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                              <p>No actions detected yet. Click "Run All Agents Now" to analyze your inventory.</p>
                             </div>
-                            <p className="font-medium text-gray-900 mb-1">{activity.action}</p>
-                            <p className="text-sm text-gray-600">{activity.details}</p>
-                          </motion.div>
-                        ))}
+                          ) : (
+                            <div className="space-y-3">
+                              {selectedAgentActions.map((activity, idx) => (
+                                <motion.div
+                                  key={activity.id}
+                                  initial={{ opacity: 0, x: -20 }}
+                                  animate={{ opacity: 1, x: 0 }}
+                                  transition={{ delay: idx * 0.05 }}
+                                  className="p-4 bg-gray-50 rounded-lg border border-gray-200 hover:border-indigo-200 transition-colors"
+                                >
+                                  <div className="flex items-start justify-between mb-2">
+                                    <div className="flex items-center gap-2">
+                                      <span className={`px-2 py-1 rounded-full text-xs font-semibold flex items-center gap-1 ${getStatusColor(activity.status)}`}>
+                                        {getStatusIcon(activity.status)}
+                                        {activity.status.toUpperCase()}
+                                      </span>
+                                      <span className="text-xs text-gray-400">{activity.timestamp}</span>
+                                    </div>
+                                  </div>
+                                  <p className="font-semibold text-gray-900 mb-1">{activity.action}</p>
+                                  <p className="text-sm text-gray-600">{activity.details}</p>
+                                </motion.div>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
-                    )}
-                  </div>
+                    </>
+                  ) : (
+                    <div className="h-[400px] flex flex-col bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/50">
+                        <div className="flex gap-3 max-w-[80%]">
+                          <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${selectedAgent.color} flex items-center justify-center text-white flex-shrink-0 mt-1`}>
+                            {selectedAgent.icon}
+                          </div>
+                          <div className="bg-white border border-gray-200 text-gray-700 px-4 py-3 rounded-2xl rounded-tl-sm shadow-sm text-sm">
+                            Hello! I am your {selectedAgent.name}. How can I assist you today?
+                          </div>
+                        </div>
+                        
+                        {(chatMessages[selectedAgent.id] || []).map((msg, idx) => (
+                          <div key={idx} className={`flex gap-3 max-w-[80%] ${msg.sender === 'user' ? 'ml-auto flex-row-reverse' : ''}`}>
+                            <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 mt-1 shadow-sm ${
+                              msg.sender === 'user' ? 'bg-indigo-600 text-white' : `bg-gradient-to-br ${selectedAgent.color} text-white`
+                            }`}>
+                              {msg.sender === 'user' ? 'TU' : selectedAgent.icon}
+                            </div>
+                            <div className={`px-4 py-3 rounded-2xl text-sm shadow-sm ${
+                              msg.sender === 'user' 
+                                ? 'bg-indigo-600 text-white rounded-tr-sm' 
+                                : 'bg-white border border-gray-200 text-gray-700 rounded-tl-sm'
+                            }`}>
+                              {msg.text}
+                            </div>
+                          </div>
+                        ))}
+                        <div ref={chatEndRef} />
+                      </div>
+                      <div className="p-3 border-t border-gray-200 bg-white">
+                        <form 
+                          onSubmit={(e) => {
+                            e.preventDefault()
+                            if (!currentMessage.trim() || !selectedAgentId) return
+                            const newMsgs = {...chatMessages}
+                            if (!newMsgs[selectedAgentId]) newMsgs[selectedAgentId] = []
+                            newMsgs[selectedAgentId].push({ sender: 'user', text: currentMessage })
+                            setChatMessages(newMsgs)
+                            setCurrentMessage('')
+                            
+                            // Simulate agent response
+                            setTimeout(() => {
+                              const responses = [
+                                "I am currently analyzing your data. Give me a moment to process this.",
+                                "Based on the recent logs, everything seems to be operating within normal parameters.",
+                                "I have logged your request. I will notify you if any anomalies are detected.",
+                                "That's an interesting point. Would you like me to run an automated diagnostic on the system?"
+                              ]
+                              const reply = responses[Math.floor(Math.random() * responses.length)]
+                              setChatMessages(prev => {
+                                const msgs = {...prev}
+                                msgs[selectedAgentId].push({ sender: 'agent', text: reply })
+                                return msgs
+                              })
+                            }, 1000)
+                          }}
+                          className="flex gap-2"
+                        >
+                          <input
+                            type="text"
+                            value={currentMessage}
+                            onChange={(e) => setCurrentMessage(e.target.value)}
+                            placeholder="Type a message to the agent..."
+                            className="flex-1 px-4 py-2 bg-gray-100 border-transparent focus:bg-white focus:border-indigo-500 focus:ring-2 focus:ring-indigo-200 rounded-xl outline-none transition-all text-sm"
+                          />
+                          <button 
+                            type="submit"
+                            disabled={!currentMessage.trim()}
+                            className="p-2 bg-indigo-600 text-white rounded-xl hover:bg-indigo-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                          >
+                            <Send className="w-5 h-5" />
+                          </button>
+                        </form>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
             </motion.div>
