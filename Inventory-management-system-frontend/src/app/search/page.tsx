@@ -3,8 +3,9 @@
 import MainLayout from '../../components/layout/MainLayout'
 import { motion } from 'framer-motion'
 import { Search, Package, Users, FileText, Warehouse, TrendingUp, Filter } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import { getProducts, getCustomers, getSales } from '../../lib/api'
 
 type Category = 'All' | 'Products' | 'Customers' | 'Memos' | 'Chalans'
 
@@ -23,29 +24,39 @@ export default function SearchPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [activeCategory, setActiveCategory] = useState<Category>('All')
 
-  // Sample search data
-  const allResults: SearchResult[] = [
-    // Products
-    { id: 'P1', type: 'Products', name: 'Laptop Pro', category: 'Electronics', details: '₹79,999 • In Stock: 150', icon: Package, link: '/products' },
-    { id: 'P2', type: 'Products', name: 'Wireless Mouse', category: 'Electronics', details: '₹1,299 • In Stock: 75', icon: Package, link: '/products' },
-    { id: 'P3', type: 'Products', name: 'USB Cable', category: 'Electronics', details: '₹299 • In Stock: 200', icon: Package, link: '/products' },
-    { id: 'P4', type: 'Products', name: 'Monitor 24"', category: 'Electronics', details: '₹12,999 • In Stock: 45', icon: Package, link: '/products' },
-    
-    // Customers
-    { id: 'C1', type: 'Customers', name: 'John Doe', category: 'Premium Customer', details: '12 orders • ₹56,000 total', icon: Users, link: '/customers' },
-    { id: 'C2', type: 'Customers', name: 'Jane Smith', category: 'Regular Customer', details: '8 orders • ₹32,000 total', icon: Users, link: '/customers' },
-    { id: 'C3', type: 'Customers', name: 'Bob Johnson', category: 'VIP Customer', details: '25 orders • ₹125,000 total', icon: Users, link: '/customers' },
-    
-    // Memos
-    { id: 'M1', type: 'Memos', name: 'Sales Memo #M01234', category: 'Paid', details: '₹26,000 • Nov 26, 2025 • John Doe', icon: FileText, link: '/sales' },
-    { id: 'M2', type: 'Memos', name: 'Sales Memo #M01233', category: 'Pending', details: '₹15,000 • Nov 25, 2025 • Jane Smith', icon: FileText, link: '/sales' },
-    { id: 'M3', type: 'Memos', name: 'Sales Memo #M01232', category: 'Paid', details: '₹32,000 • Nov 24, 2025 • Bob Johnson', icon: FileText, link: '/sales' },
-    
-    // Chalans
-    { id: 'CH1', type: 'Chalans', name: 'Delivery Chalan #D001542', category: 'Delivered', details: '50 items • Central Warehouse', icon: TrendingUp, link: '/stock' },
-    { id: 'CH2', type: 'Chalans', name: 'Delivery Chalan #D001541', category: 'In Transit', details: '30 items • North Regional', icon: TrendingUp, link: '/stock' },
-    { id: 'CH3', type: 'Chalans', name: 'Delivery Chalan #D001540', category: 'Delivered', details: '75 items • South Distribution', icon: TrendingUp, link: '/stock' },
-  ]
+  const [allResults, setAllResults] = useState<SearchResult[]>([])
+
+  useEffect(() => {
+    const fetchSearchData = async () => {
+      try {
+        const [prodRes, custRes, saleRes] = await Promise.all([
+          getProducts(),
+          getCustomers(),
+          getSales()
+        ])
+        
+        const prods = Array.isArray(prodRes) ? prodRes : (prodRes?.data || [])
+        const custs = Array.isArray(custRes) ? custRes : (custRes?.data || [])
+        const sales = Array.isArray(saleRes) ? saleRes : (saleRes?.data || [])
+
+        const results: SearchResult[] = [
+          ...prods.map((p: any) => ({
+            id: `P${p.id}`, type: 'Products' as Category, name: p.name, category: p.category, details: `₹${p.price} • In Stock: ${p.stock}`, icon: Package, link: '/products'
+          })),
+          ...custs.map((c: any) => ({
+            id: `C${c.id}`, type: 'Customers' as Category, name: c.name, category: c.segment || 'Customer', details: `${c.email} • ${c.phone}`, icon: Users, link: '/customers'
+          })),
+          ...sales.map((s: any) => ({
+            id: `M${s.id}`, type: 'Memos' as Category, name: `Sales Memo #${s.memo_id || s.id}`, category: s.status, details: `₹${s.amount}`, icon: FileText, link: '/sales'
+          }))
+        ]
+        setAllResults(results)
+      } catch (error) {
+        console.error('Error fetching search data', error)
+      }
+    }
+    fetchSearchData()
+  }, [])
 
   // Filter results based on category and search query
   const filteredResults = allResults.filter(result => {

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime
+from sqlalchemy import Column, Integer, String, Float, DateTime, ForeignKey
 from datetime import datetime
 from ..database import Base
 
@@ -6,6 +6,7 @@ class SalesMemo(Base):
     __tablename__ = "sales_memos"
 
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), index=True, nullable=False)
     memo_id = Column(String(50), unique=True, index=True, nullable=False)
     date = Column(String(50), nullable=False)
     customer = Column(String(255), nullable=False)

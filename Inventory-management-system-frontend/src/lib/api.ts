@@ -1,8 +1,22 @@
 const API_BASE_URL = 'http://127.0.0.1:8000'
 
+const getAuthHeaders = (): HeadersInit => {
+  if (typeof window !== 'undefined') {
+    const token = localStorage.getItem('auth_token');
+    if (token) return { 'Authorization': `Bearer ${token}` };
+  }
+  return {};
+};
+
+const fetchWithAuth = async (url: string, options: RequestInit = {}) => {
+  const headers = { ...options.headers, ...getAuthHeaders() } as HeadersInit;
+  return fetch(url, { ...options, headers });
+};
+
+
 // Auth
 export const registerUser = async (data: { name: string; email: string; password: string }) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/api/auth/register`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -15,7 +29,7 @@ export const registerUser = async (data: { name: string; email: string; password
 }
 
 export const loginUser = async (data: { email: string; password: string }) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/api/auth/login`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -28,7 +42,7 @@ export const loginUser = async (data: { email: string; password: string }) => {
 }
 
 export const googleLoginUser = async (data: { token: string; name?: string; email?: string; avatar?: string }) => {
-  const response = await fetch(`${API_BASE_URL}/api/auth/google`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/api/auth/google`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -42,12 +56,12 @@ export const googleLoginUser = async (data: { token: string; name?: string; emai
 
 // Products
 export const getProducts = async () => {
-  const response = await fetch(`${API_BASE_URL}/products/`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/products/`)
   return response.json()
 }
 
 export const createProduct = async (data: any) => {
-  const response = await fetch(`${API_BASE_URL}/products/`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/products/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -56,7 +70,7 @@ export const createProduct = async (data: any) => {
 }
 
 export const updateProduct = async (id: number, data: any) => {
-  const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/products/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -65,7 +79,7 @@ export const updateProduct = async (id: number, data: any) => {
 }
 
 export const deleteProduct = async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/products/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/products/${id}`, {
     method: 'DELETE'
   })
   return response
@@ -73,17 +87,17 @@ export const deleteProduct = async (id: number) => {
 
 // Categories
 export const getCategories = async () => {
-  const response = await fetch(`${API_BASE_URL}/categories/`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/categories/`)
   return response.json()
 }
 
 export const getCategoriesSummary = async () => {
-  const response = await fetch(`${API_BASE_URL}/categories/summary`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/categories/summary`)
   return response.json()
 }
 
 export const createCategory = async (data: any) => {
-  const response = await fetch(`${API_BASE_URL}/categories/`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/categories/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -93,12 +107,12 @@ export const createCategory = async (data: any) => {
 
 // Warehouses
 export const getWarehouses = async () => {
-  const response = await fetch(`${API_BASE_URL}/warehouses/`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/warehouses/`)
   return response.json()
 }
 
 export const createWarehouse = async (data: any) => {
-  const response = await fetch(`${API_BASE_URL}/warehouses/`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/warehouses/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -107,7 +121,7 @@ export const createWarehouse = async (data: any) => {
 }
 
 export const updateWarehouse = async (id: number, data: any) => {
-  const response = await fetch(`${API_BASE_URL}/warehouses/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/warehouses/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -116,7 +130,7 @@ export const updateWarehouse = async (id: number, data: any) => {
 }
 
 export const deleteWarehouse = async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/warehouses/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/warehouses/${id}`, {
     method: 'DELETE'
   })
   return response
@@ -124,12 +138,12 @@ export const deleteWarehouse = async (id: number) => {
 
 // Outlets
 export const getOutlets = async () => {
-  const response = await fetch(`${API_BASE_URL}/outlets/`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/outlets/`)
   return response.json()
 }
 
 export const createOutlet = async (data: any) => {
-  const response = await fetch(`${API_BASE_URL}/outlets/`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/outlets/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -138,7 +152,7 @@ export const createOutlet = async (data: any) => {
 }
 
 export const updateOutlet = async (id: number, data: any) => {
-  const response = await fetch(`${API_BASE_URL}/outlets/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/outlets/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -147,7 +161,7 @@ export const updateOutlet = async (id: number, data: any) => {
 }
 
 export const deleteOutlet = async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/outlets/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/outlets/${id}`, {
     method: 'DELETE'
   })
   return response
@@ -155,12 +169,12 @@ export const deleteOutlet = async (id: number) => {
 
 // Customers
 export const getCustomers = async () => {
-  const response = await fetch(`${API_BASE_URL}/customers/`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/customers/`)
   return response.json()
 }
 
 export const createCustomer = async (data: any) => {
-  const response = await fetch(`${API_BASE_URL}/customers/`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/customers/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -169,7 +183,7 @@ export const createCustomer = async (data: any) => {
 }
 
 export const updateCustomer = async (id: number, data: any) => {
-  const response = await fetch(`${API_BASE_URL}/customers/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/customers/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -178,7 +192,7 @@ export const updateCustomer = async (id: number, data: any) => {
 }
 
 export const deleteCustomer = async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/customers/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/customers/${id}`, {
     method: 'DELETE'
   })
   return response
@@ -186,12 +200,12 @@ export const deleteCustomer = async (id: number) => {
 
 // Sales Memos
 export const getSales = async () => {
-  const response = await fetch(`${API_BASE_URL}/sales/`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/sales/`)
   return response.json()
 }
 
 export const createSale = async (data: any) => {
-  const response = await fetch(`${API_BASE_URL}/sales/`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/sales/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -200,7 +214,7 @@ export const createSale = async (data: any) => {
 }
 
 export const updateSale = async (id: number, data: any) => {
-  const response = await fetch(`${API_BASE_URL}/sales/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/sales/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -209,7 +223,7 @@ export const updateSale = async (id: number, data: any) => {
 }
 
 export const deleteSale = async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/sales/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/sales/${id}`, {
     method: 'DELETE'
   })
   return response
@@ -217,12 +231,12 @@ export const deleteSale = async (id: number) => {
 
 // Stock Movements
 export const getStockMovements = async () => {
-  const response = await fetch(`${API_BASE_URL}/stock-movements/`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/stock-movements/`)
   return response.json()
 }
 
 export const createStockMovement = async (data: any) => {
-  const response = await fetch(`${API_BASE_URL}/stock-movements/`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/stock-movements/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -231,7 +245,7 @@ export const createStockMovement = async (data: any) => {
 }
 
 export const deleteStockMovement = async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/stock-movements/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/stock-movements/${id}`, {
     method: 'DELETE'
   })
   return response
@@ -239,12 +253,12 @@ export const deleteStockMovement = async (id: number) => {
 
 // Staff
 export const getStaff = async () => {
-  const response = await fetch(`${API_BASE_URL}/staff/`)
+  const response = await fetchWithAuth(`${API_BASE_URL}/staff/`)
   return response.json()
 }
 
 export const createStaff = async (data: any) => {
-  const response = await fetch(`${API_BASE_URL}/staff/`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/staff/`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -253,7 +267,7 @@ export const createStaff = async (data: any) => {
 }
 
 export const updateStaff = async (id: number, data: any) => {
-  const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/staff/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(data)
@@ -262,7 +276,7 @@ export const updateStaff = async (id: number, data: any) => {
 }
 
 export const deleteStaff = async (id: number) => {
-  const response = await fetch(`${API_BASE_URL}/staff/${id}`, {
+  const response = await fetchWithAuth(`${API_BASE_URL}/staff/${id}`, {
     method: 'DELETE'
   })
   return response

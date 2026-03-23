@@ -14,6 +14,7 @@ import { useLanguage } from '../../contexts/LanguageContext'
 import { useAuth } from '../../contexts/AuthContext'
 import FloatingParticles from '../3d-effects/FloatingParticles'
 import GradientMesh from '../3d-effects/GradientMesh'
+import WelcomeModal from '../ui/WelcomeModal'
 
 interface MainLayoutProps {
   children: ReactNode
@@ -90,6 +91,9 @@ export default function MainLayout({ children, title, subtitle }: MainLayoutProp
       {/* Background Effects */}
       <FloatingParticles />
       <GradientMesh />
+      
+      {/* Onboarding / Welcome Modal */}
+      <WelcomeModal />
 
       {/* Sidebar */}
       <aside className="fixed left-0 top-0 h-screen w-64 bg-white dark:bg-slate-800 border-r border-gray-200 dark:border-indigo-500/30 overflow-y-auto z-30 dark:shadow-[0_0_30px_rgba(99,102,241,0.3)]">

@@ -43,16 +43,10 @@ export default function WarehousesPage() {
           status: (w.status || 'Active').toLowerCase() as 'active' | 'inactive'
         })))
       } else {
-        // Use sample data if API returns empty
-        setWarehouses([
-          { id: 'WH001', name: 'Central Warehouse', location: 'Dhaka, Tejgaon', capacity: 50000, used: 42500, products: 1245, staff: 12, status: 'active' },
-          { id: 'WH002', name: 'North Regional', location: 'Chittagong, Karnaphuli', capacity: 30000, used: 25800, products: 856, staff: 8, status: 'active' },
-        ])
+        setWarehouses([])
       }
     } catch {
-      setWarehouses([
-        { id: 'WH001', name: 'Central Warehouse', location: 'Dhaka, Tejgaon', capacity: 50000, used: 42500, products: 1245, staff: 12, status: 'active' },
-      ])
+      setWarehouses([])
     } finally {
       setLoading(false)
     }

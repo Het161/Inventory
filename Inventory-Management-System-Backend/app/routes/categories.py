@@ -6,11 +6,12 @@ from typing import List
 from ..database import get_db
 from .. import models
 from ..schemas.category import CategoryCreate, CategoryOut, CategoryUpdate
+from .auth import get_current_user
 
 router = APIRouter(prefix="/categories", tags=["Categories"])
 
 @router.get("/summary")
-def get_categories_summary(db: Session = Depends(get_db)):
+def get_categories_summary(db: Session = Depends(get_db), current_user: models.user.User = Depends(get_current_user)):
     """Get categories derived from products with counts"""
     results = db.query(
         models.product.Product.category,
@@ -22,7 +23,7 @@ def get_categories_summary(db: Session = Depends(get_db)):
                 else_=0
             )
         ).label("low_stock_items")
-    ).group_by(models.product.Product.category).all()
+    ).filter(models.product.Product.user_id == current_user.id).group_by(models.product.Product.category).all()
 
     return [
         {
@@ -36,27 +37,27 @@ def get_categories_summary(db: Session = Depends(get_db)):
     ]
 
 @router.post("/", response_model=CategoryOut, status_code=status.HTTP_201_CREATED)
-def create_category(payload: CategoryCreate, db: Session = Depends(get_db)):
-    category = models.category.Category(**payload.dict())
+def create_category(payload: CategoryCreate, db: Session = Depends(get_db), current_user: models.user.User = Depends(get_current_user)):
+    category = models.category.Category(**payload.dict(), user_id=current_user.id)
     db.add(category)
     db.commit()
     db.refresh(category)
     return category
 
 @router.get("/", response_model=List[CategoryOut])
-def list_categories(db: Session = Depends(get_db)):
-    return db.query(models.category.Category).all()
+def list_categories(db: Session = Depends(get_db), current_user: models.user.User = Depends(get_current_user)):
+    return db.query(models.category.Category).filter(models.category.Category.user_id == current_user.id).all()
 
 @router.get("/{category_id}", response_model=CategoryOut)
-def get_category(category_id: int, db: Session = Depends(get_db)):
-    category = db.query(models.category.Category).get(category_id)
+def get_category(category_id: int, db: Session = Depends(get_db), current_user: models.user.User = Depends(get_current_user)):
+    category = db.query(models.category.Category).filter(models.category.Category.id == category_id, models.category.Category.user_id == current_user.id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
     return category
 
 @router.patch("/{category_id}", response_model=CategoryOut)
-def update_category(category_id: int, payload: CategoryUpdate, db: Session = Depends(get_db)):
-    category = db.query(models.category.Category).get(category_id)
+def update_category(category_id: int, payload: CategoryUpdate, db: Session = Depends(get_db), current_user: models.user.User = Depends(get_current_user)):
+    category = db.query(models.category.Category).filter(models.category.Category.id == category_id, models.category.Category.user_id == current_user.id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
 
@@ -68,8 +69,8 @@ def update_category(category_id: int, payload: CategoryUpdate, db: Session = Dep
     return category
 
 @router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(category_id: int, db: Session = Depends(get_db)):
-    category = db.query(models.category.Category).get(category_id)
+def delete_category(category_id: int, db: Session = Depends(get_db), current_user: models.user.User = Depends(get_current_user)):
+    category = db.query(models.category.Category).filter(models.category.Category.id == category_id, models.category.Category.user_id == current_user.id).first()
     if not category:
         raise HTTPException(status_code=404, detail="Category not found")
     db.delete(category)

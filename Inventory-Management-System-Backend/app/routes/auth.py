@@ -1,4 +1,5 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Header
+from typing import Optional
 from sqlalchemy.orm import Session
 import hashlib
 import hmac
@@ -166,11 +167,15 @@ def google_login(data: GoogleLogin, db: Session = Depends(get_db)):
 
 
 @router.get("/me", response_model=UserOut)
-def get_current_user(token: str = "", db: Session = Depends(get_db)):
+def get_current_user(token: str = "", authorization: Optional[str] = Header(None), db: Session = Depends(get_db)):
     """Get current user from JWT token passed as query param or header."""
-    if not token:
+    actual_token = token
+    if not actual_token and authorization and authorization.startswith("Bearer "):
+        actual_token = authorization.split(" ")[1]
+        
+    if not actual_token:
         raise HTTPException(status_code=401, detail="Token required")
-    payload = decode_jwt(token)
+    payload = decode_jwt(actual_token)
     user = db.query(User).filter(User.id == payload.get("user_id")).first()
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
