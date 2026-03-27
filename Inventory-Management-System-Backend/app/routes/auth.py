@@ -7,6 +7,7 @@ import os
 import json
 import time
 import base64
+import threading
 from datetime import datetime, timedelta
 
 from ..database import get_db
@@ -89,11 +90,12 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    # Send welcome email (async-safe, won't crash if fails)
-    try:
-        send_welcome_email(user.email, user.name)
-    except Exception as e:
-        print(f"[AUTH] Welcome email error: {e}")
+    # Send welcome email in background thread (non-blocking)
+    threading.Thread(
+        target=send_welcome_email,
+        args=(user.email, user.name),
+        daemon=True
+    ).start()
 
     # Return JWT
     token = create_jwt({"user_id": user.id, "email": user.email})
@@ -111,11 +113,12 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
     if not verify_password(user_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    # Send welcome-back email on login
-    try:
-        send_login_email(user.email, user.name)
-    except Exception as e:
-        print(f"[AUTH] Login email error: {e}")
+    # Send welcome-back email in background thread (non-blocking)
+    threading.Thread(
+        target=send_login_email,
+        args=(user.email, user.name),
+        daemon=True
+    ).start()
 
     token = create_jwt({"user_id": user.id, "email": user.email})
     return TokenResponse(
@@ -143,21 +146,23 @@ def google_login(data: GoogleLogin, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
 
-        # Send welcome email for new Google users too
-        try:
-            send_welcome_email(user.email, user.name)
-        except Exception:
-            pass
+        # Send welcome email in background thread (non-blocking)
+        threading.Thread(
+            target=send_welcome_email,
+            args=(user.email, user.name),
+            daemon=True
+        ).start()
     else:
         # Update avatar if provided
         if data.avatar and not user.avatar:
             user.avatar = data.avatar
             db.commit()
-        # Send welcome-back email for returning Google users
-        try:
-            send_login_email(user.email, user.name)
-        except Exception:
-            pass
+        # Send welcome-back email in background thread (non-blocking)
+        threading.Thread(
+            target=send_login_email,
+            args=(user.email, user.name),
+            daemon=True
+        ).start()
 
     token = create_jwt({"user_id": user.id, "email": user.email})
     return TokenResponse(

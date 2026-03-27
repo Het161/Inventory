@@ -54,7 +54,7 @@ def send_welcome_email(to_email: str, user_name: str):
                     </div>
 
                     <p>Get started by logging in and exploring your dashboard.</p>
-                    <a href="http://localhost:3000" class="cta">Go to Dashboard →</a>
+                    <a href="https://stockpilot-lake.vercel.app/login" class="cta">Go to Dashboard →</a>
                 </div>
                 <div class="footer">
                     <p>© 2026 OM Marketing Solutions | Inventory Management System</p>
@@ -134,7 +134,7 @@ def send_login_email(to_email: str, user_name: str):
                     </div>
 
                     <p>Continue managing your inventory from where you left off.</p>
-                    <a href="http://localhost:3000" class="cta">Go to Dashboard →</a>
+                    <a href="https://stockpilot-lake.vercel.app/login" class="cta">Go to Dashboard →</a>
                 </div>
                 <div class="footer">
                     <p>© 2026 OM Marketing Solutions | Inventory Management System</p>
