@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status, Header
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, status, Header
 from typing import Optional
 from sqlalchemy.orm import Session
 import hashlib
@@ -7,7 +7,7 @@ import os
 import json
 import time
 import base64
-import threading
+
 from datetime import datetime, timedelta
 
 from ..database import get_db
@@ -73,7 +73,7 @@ def verify_password(password: str, hashed: str) -> bool:
 # --- Routes ---
 
 @router.post("/register", response_model=TokenResponse)
-def register(user_data: UserCreate, db: Session = Depends(get_db)):
+def register(user_data: UserCreate, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     # Check if email already exists
     existing = db.query(User).filter(User.email == user_data.email).first()
     if existing:
@@ -90,12 +90,8 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
     db.commit()
     db.refresh(user)
 
-    # Send welcome email in background thread (non-blocking)
-    threading.Thread(
-        target=send_welcome_email,
-        args=(user.email, user.name),
-        daemon=True
-    ).start()
+    # Send welcome email in background (non-blocking, guaranteed to complete)
+    background_tasks.add_task(send_welcome_email, user.email, user.name)
 
     # Return JWT
     token = create_jwt({"user_id": user.id, "email": user.email})
@@ -106,19 +102,15 @@ def register(user_data: UserCreate, db: Session = Depends(get_db)):
 
 
 @router.post("/login", response_model=TokenResponse)
-def login(user_data: UserLogin, db: Session = Depends(get_db)):
+def login(user_data: UserLogin, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     user = db.query(User).filter(User.email == user_data.email).first()
     if not user or not user.password_hash:
         raise HTTPException(status_code=401, detail="Invalid email or password")
     if not verify_password(user_data.password, user.password_hash):
         raise HTTPException(status_code=401, detail="Invalid email or password")
 
-    # Send welcome-back email in background thread (non-blocking)
-    threading.Thread(
-        target=send_login_email,
-        args=(user.email, user.name),
-        daemon=True
-    ).start()
+    # Send welcome-back email in background (non-blocking, guaranteed to complete)
+    background_tasks.add_task(send_login_email, user.email, user.name)
 
     token = create_jwt({"user_id": user.id, "email": user.email})
     return TokenResponse(
@@ -128,7 +120,7 @@ def login(user_data: UserLogin, db: Session = Depends(get_db)):
 
 
 @router.post("/google", response_model=TokenResponse)
-def google_login(data: GoogleLogin, db: Session = Depends(get_db)):
+def google_login(data: GoogleLogin, background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     """Handle Google Sign-In. The frontend sends decoded user info."""
     if not data.email:
         raise HTTPException(status_code=400, detail="Email is required from Google login")
@@ -146,23 +138,15 @@ def google_login(data: GoogleLogin, db: Session = Depends(get_db)):
         db.commit()
         db.refresh(user)
 
-        # Send welcome email in background thread (non-blocking)
-        threading.Thread(
-            target=send_welcome_email,
-            args=(user.email, user.name),
-            daemon=True
-        ).start()
+        # Send welcome email in background (non-blocking, guaranteed to complete)
+        background_tasks.add_task(send_welcome_email, user.email, user.name)
     else:
         # Update avatar if provided
         if data.avatar and not user.avatar:
             user.avatar = data.avatar
             db.commit()
-        # Send welcome-back email in background thread (non-blocking)
-        threading.Thread(
-            target=send_login_email,
-            args=(user.email, user.name),
-            daemon=True
-        ).start()
+        # Send welcome-back email in background (non-blocking, guaranteed to complete)
+        background_tasks.add_task(send_login_email, user.email, user.name)
 
     token = create_jwt({"user_id": user.id, "email": user.email})
     return TokenResponse(
